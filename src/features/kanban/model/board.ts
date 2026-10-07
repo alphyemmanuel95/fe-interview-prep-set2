@@ -106,7 +106,8 @@ export function boardReducer(board: BoardState, action: BoardAction): BoardState
       };
     case 'edit': {
       const card = board.cards[action.cardId];
-      if (card === undefined) {
+      // The form validates too, but the reducer enforces the invariant for any caller.
+      if (card === undefined || action.changes.title.trim() === '') {
         return board;
       }
       return { ...board, cards: { ...board.cards, [card.id]: { ...card, ...action.changes } } };
@@ -155,6 +156,7 @@ const isCard = (value: unknown): value is Card =>
   isRecord(value) &&
   typeof value['id'] === 'string' &&
   typeof value['title'] === 'string' &&
+  value['title'].trim() !== '' &&
   typeof value['description'] === 'string';
 
 const isStringArray = (value: unknown): value is readonly string[] =>

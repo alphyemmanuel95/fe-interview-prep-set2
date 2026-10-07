@@ -63,6 +63,22 @@ describe('boardReducer', () => {
     expect(next.columns).toBe(seeded.columns);
   });
 
+  it('ignores an edit whose title is blank', () => {
+    const next = boardReducer(seeded, {
+      type: 'edit',
+      cardId: 'b',
+      changes: { title: '   ', description: 'Details' },
+    });
+
+    expect(next).toBe(seeded);
+  });
+
+  it('rejects a stored card with a blank title', () => {
+    expect(
+      isBoardState({ ...seeded, cards: { ...seeded.cards, a: { ...card('a'), title: ' ' } } }),
+    ).toBe(false);
+  });
+
   it('deletes a card from both the card map and its column', () => {
     const next = boardReducer(seeded, { type: 'delete', cardId: 'd' });
 
