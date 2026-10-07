@@ -1,0 +1,56 @@
+.feed-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--feed-status-min-height);
+  padding: var(--space-4) 0;
+  text-align: center;
+}
+
+.feed-status__message {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.feed-status__message--error {
+  color: var(--color-danger);
+}
+
+.feed-status__retry {
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  cursor: pointer;
+}
+
+.feed-status__spinner {
+  width: var(--feed-spinner-size);
+  height: var(--feed-spinner-size);
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: feed-status-spin var(--feed-spinner-duration) linear infinite;
+}
+
+@keyframes feed-status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-status__spinner {
+    animation: none;
+  }
+}
+
+/* Programmatic focus target after Retry (tabIndex -1), not a control, so no focus ring. */
+.feed-status:focus {
+  outline: none;
+}
