@@ -128,18 +128,32 @@ const isCard = (value: unknown): value is Card =>
 const isStringArray = (value: unknown): value is readonly string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string');
 
-// Shape check plus referential integrity: every column id must point at a stored card,
-// otherwise rendering would hit a dangling id.
+// Shape check plus referential integrity: each card is keyed by its own id and sits in exactly
+// one column. Anything else (dangling, duplicated or orphaned ids) would break rendering or moves.
 export function isBoardState(value: unknown): value is BoardState {
   if (!isRecord(value) || !isRecord(value['cards']) || !isRecord(value['columns'])) {
     return false;
   }
   const { cards, columns } = value;
-  if (!Object.values(cards).every(isCard)) {
+  const isCardMapValid = Object.entries(cards).every(
+    ([key, card]) => isCard(card) && card.id === key,
+  );
+  if (!isCardMapValid) {
     return false;
   }
-  return COLUMN_IDS.every((columnId) => {
+  const placedIds = new Set<string>();
+  for (const columnId of COLUMN_IDS) {
     const ids = columns[columnId];
-    return isStringArray(ids) && ids.every((id) => id in cards);
-  });
+    if (!isStringArray(ids)) {
+      return false;
+    }
+    for (const id of ids) {
+      // `hasOwn`, not `in`: `in` would accept inherited keys such as "toString".
+      if (!Object.hasOwn(cards, id) || placedIds.has(id)) {
+        return false;
+      }
+      placedIds.add(id);
+    }
+  }
+  return placedIds.size === Object.keys(cards).length;
 }

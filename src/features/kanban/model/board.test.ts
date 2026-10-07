@@ -73,6 +73,24 @@ describe('isBoardState', () => {
     );
   });
 
+  it('rejects inherited keys such as "toString" as card ids', () => {
+    expect(isBoardState({ ...seeded, columns: { ...seeded.columns, done: ['toString'] } })).toBe(
+      false,
+    );
+  });
+
+  it('rejects an id that appears in more than one column', () => {
+    expect(isBoardState({ ...seeded, columns: { ...seeded.columns, done: ['a'] } })).toBe(false);
+  });
+
+  it('rejects a card stored under a key that differs from its id', () => {
+    expect(isBoardState({ ...seeded, cards: { ...seeded.cards, a: card('z') } })).toBe(false);
+  });
+
+  it('rejects a card that is not placed in any column', () => {
+    expect(isBoardState({ ...seeded, cards: { ...seeded.cards, e: card('e') } })).toBe(false);
+  });
+
   it('rejects malformed data', () => {
     expect(isBoardState({ cards: [], columns: {} })).toBe(false);
     expect(isBoardState(null)).toBe(false);
