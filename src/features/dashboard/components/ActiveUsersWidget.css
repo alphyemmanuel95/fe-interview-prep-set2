@@ -1,0 +1,25 @@
+.active-users-widget__value {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.active-users-widget__chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 300 / 80;
+}
+
+.active-users-widget__line {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.active-users-widget__dot {
+  fill: var(--color-primary);
+}

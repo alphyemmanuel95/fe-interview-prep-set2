@@ -1,0 +1,32 @@
+.dashboard-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.dashboard-status__state,
+.dashboard-status__updated {
+  margin: 0;
+}
+
+.dashboard-status__dot--live,
+.dashboard-status__dot--paused {
+  display: inline-block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: var(--space-2);
+  border-radius: 50%;
+}
+
+.dashboard-status__dot--live {
+  background: var(--color-success);
+}
+
+.dashboard-status__dot--paused {
+  background: var(--color-warning);
+}
+
+.dashboard-status__error {
+  color: var(--color-danger);
+}
