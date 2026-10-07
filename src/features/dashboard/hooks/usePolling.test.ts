@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePolling } from './usePolling';
 
@@ -56,7 +57,7 @@ function renderPolling<T>(fetcher: (signal: AbortSignal) => Promise<T>) {
 
 describe('usePolling', () => {
   beforeEach(() => {
-    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.useFakeTimers();
     visibility = 'visible';
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
@@ -79,6 +80,19 @@ describe('usePolling', () => {
 
     expect(onSuccess).toHaveBeenCalledWith(1);
     expect(calls).toHaveLength(2);
+  });
+
+  it('sends exactly one request on mount under StrictMode', async () => {
+    const { fetcher, calls } = createControlledFetcher<number>();
+    renderHook(
+      () => usePolling({ fetcher, intervalMs: INTERVAL_MS, onSuccess: vi.fn(), onError: vi.fn() }),
+      { wrapper: StrictMode },
+    );
+
+    await advance(0);
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.signal.aborted).toBe(false);
   });
 
   it('never overlaps requests when the API is slower than the interval', async () => {
