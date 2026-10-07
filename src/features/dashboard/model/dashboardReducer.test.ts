@@ -98,7 +98,42 @@ describe('dashboardReducer', () => {
     expect(dashboardReducer(initialDashboardState, { type: 'failed', error: 'down' })).toEqual({
       status: 'error',
       error: 'down',
+      isRetrying: false,
     });
+  });
+
+  it('marks a retry as in progress until the next response', () => {
+    const failed = dashboardReducer(initialDashboardState, { type: 'failed', error: 'down' });
+    const retrying = dashboardReducer(failed, { type: 'retryStarted' });
+    expect(retrying).toEqual({ status: 'error', error: 'down', isRetrying: true });
+
+    const recovered = readyState(
+      dashboardReducer(retrying, { type: 'received', snapshot: snapshot(), receivedAt: 1 }),
+    );
+    expect(recovered.isRetrying).toBe(false);
+  });
+
+  it('treats orders with a changed amount as changed', () => {
+    const first = readyState(
+      dashboardReducer(initialDashboardState, {
+        type: 'received',
+        snapshot: snapshot(),
+        receivedAt: 1,
+      }),
+    );
+    const [order] = snapshot().recentOrders;
+    if (order === undefined) {
+      throw new Error('Fixture needs an order');
+    }
+    const second = readyState(
+      dashboardReducer(first, {
+        type: 'received',
+        snapshot: snapshot({ recentOrders: [{ ...order, amountCents: order.amountCents + 1 }] }),
+        receivedAt: 2,
+      }),
+    );
+
+    expect(second.data.recentOrders).not.toBe(first.data.recentOrders);
   });
 
   it('keeps existing data when a refresh fails, and clears the error on the next success', () => {

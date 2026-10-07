@@ -68,7 +68,7 @@ describe('DashboardPage', () => {
 
   it('renders the three widgets from the API response', async () => {
     render(<DashboardPage fetcher={createFetcher()} />);
-    expect(screen.getByRole('status')).toHaveTextContent('Loading dashboard…');
+    expect(screen.getByRole('status')).toHaveTextContent('Connecting…');
 
     await advance(0);
 
@@ -98,19 +98,49 @@ describe('DashboardPage', () => {
 
   it('retries immediately after a failed first load', async () => {
     const user = setupUser();
+    let resolveRetry: (snapshot: DashboardSnapshot) => void = () => undefined;
     const fetcher = vi
       .fn<DashboardFetcher>()
       .mockRejectedValueOnce(new Error('Service unavailable'))
-      .mockResolvedValue(SNAPSHOT);
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveRetry = resolve;
+          }),
+      );
     render(<DashboardPage fetcher={fetcher} />);
     await advance(0);
-    expect(screen.getByRole('alert')).toHaveTextContent('Service unavailable');
-    expect(screen.getByText(/Not connected/)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/Not connected.*Service unavailable/);
 
     await user.click(screen.getByRole('button', { name: 'Retry now' }));
     await advance(0);
-
     expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('button', { name: 'Retrying…' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    );
+
+    await act(async () => {
+      resolveRetry(SNAPSHOT);
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(screen.getByRole('region', { name: 'Sales' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Retr/ })).not.toBeInTheDocument();
+  });
+
+  it('stops claiming Live when a refresh fails after data loaded', async () => {
+    const fetcher = vi
+      .fn<DashboardFetcher>()
+      .mockResolvedValueOnce(SNAPSHOT)
+      .mockRejectedValue(new Error('Timeout'));
+    render(<DashboardPage fetcher={fetcher} />);
+    await advance(0);
+
+    await advance(POLL_INTERVAL_MS);
+
+    expect(screen.queryByText(/refreshes every/)).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/Not connected.*Timeout/);
+    expect(screen.getByRole('button', { name: 'Retry now' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Sales' })).toBeInTheDocument();
   });
 

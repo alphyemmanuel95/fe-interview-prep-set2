@@ -8,13 +8,17 @@ type DashboardStatusProps = Readonly<{
   connection: ConnectionState;
   intervalSeconds: number;
   updatedAt: number | null;
-  refreshError: string | null;
+  error: string | null;
+  canRetry: boolean;
+  onRetry: () => void;
 }>;
 
 function describeConnection(connection: ConnectionState, intervalSeconds: number): string {
   switch (connection) {
     case 'live':
       return `Live · refreshes every ${intervalSeconds} seconds`;
+    case 'connecting':
+      return 'Connecting…';
     case 'paused':
       return 'Paused while this tab is hidden';
     case 'unavailable':
@@ -28,21 +32,39 @@ export function DashboardStatus({
   connection,
   intervalSeconds,
   updatedAt,
-  refreshError,
+  error,
+  canRetry,
+  onRetry,
 }: DashboardStatusProps): JSX.Element {
   return (
     <div className="dashboard-status">
-      {/* Only state changes are announced; the timestamp ticks every poll and would be noise. */}
-      <p className="dashboard-status__state" aria-live="polite">
+      {/* The single place failures are announced. Only state changes are announced; the
+          timestamp ticks every poll and would be noise. */}
+      <p className="dashboard-status__state" role="status">
         <span
           className={`dashboard-status__dot dashboard-status__dot--${connection}`}
           aria-hidden="true"
         />
         {describeConnection(connection, intervalSeconds)}
-        {refreshError !== null && (
-          <span className="dashboard-status__error"> · Refresh failed: {refreshError}</span>
+        {connection === 'unavailable' && error !== null && (
+          <span className="dashboard-status__error"> · Last error: {error}</span>
         )}
       </p>
+      {error !== null && (
+        <button
+          className="dashboard-status__retry"
+          type="button"
+          // aria-disabled rather than disabled so keyboard focus stays on the button while retrying.
+          aria-disabled={!canRetry}
+          onClick={() => {
+            if (canRetry) {
+              onRetry();
+            }
+          }}
+        >
+          {connection === 'connecting' ? 'Retrying…' : 'Retry now'}
+        </button>
+      )}
       {updatedAt !== null && (
         <p className="dashboard-status__updated">
           Last updated{' '}

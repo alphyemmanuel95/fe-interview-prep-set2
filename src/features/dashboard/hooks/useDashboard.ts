@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useCallback, useReducer } from 'react';
 import {
   dashboardReducer,
   initialDashboardState,
@@ -12,7 +12,7 @@ export const POLL_INTERVAL_MS = 5_000;
 type UseDashboardResult = Readonly<{
   state: DashboardState;
   isPaused: boolean;
-  refresh: () => void;
+  retry: () => void;
 }>;
 
 const toMessage = (error: unknown): string =>
@@ -30,5 +30,10 @@ export function useDashboard(fetcher: DashboardFetcher): UseDashboardResult {
       dispatch({ type: 'failed', error: toMessage(error) });
     },
   });
-  return { state, isPaused, refresh };
+  // Marks the retry in state first so the UI shows progress, then restarts polling at once.
+  const retry = useCallback(() => {
+    dispatch({ type: 'retryStarted' });
+    refresh();
+  }, [refresh]);
+  return { state, isPaused, retry };
 }

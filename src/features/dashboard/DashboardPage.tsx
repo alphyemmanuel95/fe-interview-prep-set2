@@ -21,6 +21,17 @@ type DashboardPageProps = Readonly<{
 
 const MS_PER_SECOND = 1_000;
 
+// Placeholder cards at the widgets' final heights, so the first response doesn't shift layout.
+function WidgetSkeletons(): JSX.Element {
+  return (
+    <div className="dashboard__grid">
+      <div className="dashboard__skeleton dashboard__skeleton--sales" aria-hidden="true" />
+      <div className="dashboard__skeleton dashboard__skeleton--active-users" aria-hidden="true" />
+      <div className="dashboard__skeleton dashboard__skeleton--orders" aria-hidden="true" />
+    </div>
+  );
+}
+
 type WidgetGridProps = Readonly<{
   data: DashboardData;
   hiddenWidgetIds: readonly WidgetId[];
@@ -47,28 +58,15 @@ function WidgetGrid({ data, hiddenWidgetIds }: WidgetGridProps): JSX.Element {
 type DashboardContentProps = Readonly<{
   state: DashboardState;
   hiddenWidgetIds: readonly WidgetId[];
-  onRetry: () => void;
 }>;
 
-function DashboardContent({ state, hiddenWidgetIds, onRetry }: DashboardContentProps): JSX.Element {
+function DashboardContent({ state, hiddenWidgetIds }: DashboardContentProps): JSX.Element {
   switch (state.status) {
     case 'loading':
-      return (
-        <p className="dashboard__message" role="status">
-          Loading dashboard…
-        </p>
-      );
+      return <WidgetSkeletons />;
     case 'error':
-      return (
-        <div className="dashboard__error" role="alert">
-          <p className="dashboard__message dashboard__message--error">
-            Could not load the dashboard: {state.error}.
-          </p>
-          <button className="dashboard__retry" type="button" onClick={onRetry}>
-            Retry now
-          </button>
-        </div>
-      );
+      // The status line above announces the error and offers "Retry now".
+      return <p className="dashboard__message">The dashboard has not loaded yet.</p>;
     case 'ready':
       return <WidgetGrid data={state.data} hiddenWidgetIds={hiddenWidgetIds} />;
     default:
@@ -76,8 +74,22 @@ function DashboardContent({ state, hiddenWidgetIds, onRetry }: DashboardContentP
   }
 }
 
+function getErrorMessage(state: DashboardState): string | null {
+  switch (state.status) {
+    case 'loading':
+      return null;
+    case 'error':
+      return state.error;
+    case 'ready':
+      return state.refreshError;
+    default:
+      return assertNever(state);
+  }
+}
+
 export function DashboardPage({ fetcher = fetchDashboard }: DashboardPageProps): JSX.Element {
-  const { state, isPaused, refresh } = useDashboard(fetcher);
+  const { state, isPaused, retry } = useDashboard(fetcher);
+  const isRetrying = state.status !== 'loading' && state.isRetrying;
   const { hiddenWidgetIds, toggleWidget } = useWidgetVisibility();
   return (
     <section className="dashboard" aria-labelledby="page-title">
@@ -88,10 +100,12 @@ export function DashboardPage({ fetcher = fetchDashboard }: DashboardPageProps):
         connection={getConnectionState(isPaused, state)}
         intervalSeconds={POLL_INTERVAL_MS / MS_PER_SECOND}
         updatedAt={state.status === 'ready' ? state.data.updatedAt : null}
-        refreshError={state.status === 'ready' ? state.refreshError : null}
+        error={getErrorMessage(state)}
+        canRetry={!isPaused && !isRetrying}
+        onRetry={retry}
       />
       <WidgetToggles hiddenWidgetIds={hiddenWidgetIds} onToggle={toggleWidget} />
-      <DashboardContent state={state} hiddenWidgetIds={hiddenWidgetIds} onRetry={refresh} />
+      <DashboardContent state={state} hiddenWidgetIds={hiddenWidgetIds} />
     </section>
   );
 }
