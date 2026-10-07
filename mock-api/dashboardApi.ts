@@ -8,12 +8,21 @@ export const DASHBOARD_ROUTE = '/api/dashboard';
 const MIN_LATENCY_MS = 300;
 const MAX_LATENCY_MS = 1_500;
 const HTTP_OK = 200;
+const HTTP_NOT_FOUND = 404;
 const HTTP_METHOD_NOT_ALLOWED = 405;
 
 function createDashboardMiddleware(): Connect.NextHandleFunction {
   let state = createInitialState();
 
   return (request, response) => {
+    // Connect strips the mount path, so anything but "/" here is a sub-path like
+    // /api/dashboard/x, which this API doesn't serve.
+    const subPath = (request.url ?? '/').split('?')[0];
+    if (subPath !== '/') {
+      response.statusCode = HTTP_NOT_FOUND;
+      response.end();
+      return;
+    }
     if (request.method !== 'GET') {
       response.statusCode = HTTP_METHOD_NOT_ALLOWED;
       response.setHeader('Allow', 'GET');
