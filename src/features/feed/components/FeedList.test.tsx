@@ -126,9 +126,12 @@ describe('FeedList', () => {
 
   it('keeps loaded posts when returning from a post without refetching', async () => {
     const user = userEvent.setup();
-    const router = createMemoryRouter([{ path: '/feed/*', element: <FeedPage /> }], {
-      initialEntries: ['/feed'],
-    });
+    const router = createMemoryRouter(
+      [{ path: '/feed/*', element: <FeedPage store={createFeedStore()} /> }],
+      {
+        initialEntries: ['/feed'],
+      },
+    );
     render(<RouterProvider router={router} />);
 
     scrollSentinelIntoView(1);
