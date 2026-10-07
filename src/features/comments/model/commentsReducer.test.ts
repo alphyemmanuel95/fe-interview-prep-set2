@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { Comment, CommentsState } from './commentsReducer';
+import type { CommentsState } from './commentsReducer';
 import {
   commentsReducer,
   createInitialState,
-  getDisplayStatus,
+  selectCommentViews,
   selectNextToSend,
 } from './commentsReducer';
 
-const draft = (clientId: string): Omit<Comment, 'status'> => ({
+const draft = (clientId: string): { clientId: string; text: string; createdAt: string } => ({
   clientId,
   text: `Comment ${clientId}`,
   createdAt: '2026-10-07T10:00:00.000Z',
@@ -19,73 +19,103 @@ const enqueueAll = (...clientIds: string[]): CommentsState =>
     createInitialState([]),
   );
 
+const statuses = (state: CommentsState): string[] =>
+  state.comments.map((comment) => `${comment.clientId}:${comment.status}`);
+
 describe('commentsReducer', () => {
   it('enqueues new comments as pending, in order', () => {
-    const state = enqueueAll('a', 'b');
-
-    expect(state.comments.map((comment) => [comment.clientId, comment.status])).toEqual([
-      ['a', 'pending'],
-      ['b', 'pending'],
-    ]);
+    expect(statuses(enqueueAll('a', 'b'))).toEqual(['a:pending', 'b:pending']);
   });
 
-  it('marks a pending comment sent or failed', () => {
+  it('marks a pending comment sent or failed and records the outcome', () => {
     let state = enqueueAll('a', 'b');
     state = commentsReducer(state, { type: 'sendSucceeded', clientId: 'a', serverId: 's-1' });
-    state = commentsReducer(state, { type: 'sendFailed', clientId: 'b' });
+    expect(state.lastOutcome).toEqual({ clientId: 'a', result: 'sent' });
 
+    state = commentsReducer(state, { type: 'sendFailed', clientId: 'b' });
     expect(state.comments).toEqual([
-      { ...draft('a'), status: 'sent', serverId: 's-1' },
+      { ...draft('a'), status: 'sent', serverId: 's-1', source: 'local' },
       { ...draft('b'), status: 'failed' },
     ]);
+    expect(state.lastOutcome).toEqual({ clientId: 'b', result: 'failed' });
   });
 
   it('ignores a late result for a comment that is no longer pending', () => {
     let state = enqueueAll('a');
     state = commentsReducer(state, { type: 'sendSucceeded', clientId: 'a', serverId: 's-1' });
-    const after = commentsReducer(state, { type: 'sendFailed', clientId: 'a' });
 
-    expect(after).toEqual(state);
+    expect(commentsReducer(state, { type: 'sendFailed', clientId: 'a' }).comments).toEqual(
+      state.comments,
+    );
   });
 
-  it('moves a retried comment to the back of the queue', () => {
+  it('retries a failed comment in its original position', () => {
     let state = enqueueAll('a', 'b');
     state = commentsReducer(state, { type: 'sendFailed', clientId: 'a' });
     state = commentsReducer(state, { type: 'retry', clientId: 'a' });
 
-    expect(state.comments.map((comment) => [comment.clientId, comment.status])).toEqual([
-      ['b', 'pending'],
-      ['a', 'pending'],
-    ]);
+    expect(statuses(state)).toEqual(['a:pending', 'b:pending']);
   });
 
-  it('merges server history and drops local copies the server already has', () => {
+  it('merges server history and marks local copies the server already has as sent', () => {
     let state = enqueueAll('a', 'b');
     state = commentsReducer(state, { type: 'sendFailed', clientId: 'a' });
     state = commentsReducer(state, {
       type: 'historyLoaded',
-      comments: [{ ...draft('a'), id: 's-1' }],
+      comments: [
+        { ...draft('h'), id: 's-0' },
+        { ...draft('a'), id: 's-1' },
+      ],
     });
 
-    expect(state.history).toBe('loaded');
-    expect(state.comments.map((comment) => [comment.clientId, comment.status])).toEqual([
-      ['a', 'sent'],
-      ['b', 'pending'],
+    expect(state.history.status).toBe('loaded');
+    expect(state.comments.map((comment) => comment.clientId)).toEqual(['h', 'a', 'b']);
+    expect(selectCommentViews(state.comments, true).map((view) => view.status)).toEqual([
+      'published',
+      'sent',
+      'sending',
     ]);
+  });
+
+  it('moves history through error and retry, bumping the attempt', () => {
+    let state = commentsReducer(createInitialState([]), { type: 'historyFailed' });
+    expect(state.history).toEqual({ status: 'error', attempt: 0 });
+
+    state = commentsReducer(state, { type: 'historyRetried' });
+    expect(state.history).toEqual({ status: 'loading', attempt: 1 });
   });
 });
 
-describe('selectNextToSend / getDisplayStatus', () => {
-  it('sends the oldest pending comment only while online', () => {
-    let state = enqueueAll('a', 'b');
-    state = commentsReducer(state, { type: 'sendFailed', clientId: 'a' });
+describe('outbox selectors', () => {
+  it('sends only the head of the queue, and only while online', () => {
+    const state = enqueueAll('a', 'b');
 
     expect(selectNextToSend(state.comments, false)).toBeUndefined();
-    const next = selectNextToSend(state.comments, true);
-    expect(next?.clientId).toBe('b');
-    expect(state.comments.map((comment) => getDisplayStatus(comment, next?.clientId))).toEqual([
+    expect(selectNextToSend(state.comments, true)?.clientId).toBe('a');
+  });
+
+  it('blocks everything behind a failed head', () => {
+    let state = enqueueAll('a', 'b', 'c');
+    state = commentsReducer(state, { type: 'sendFailed', clientId: 'a' });
+
+    expect(selectNextToSend(state.comments, true)).toBeUndefined();
+    expect(selectCommentViews(state.comments, true).map((view) => view.status)).toEqual([
       'failed',
+      'blocked',
+      'blocked',
+    ]);
+  });
+
+  it('shows every pending comment as sending online and queued offline', () => {
+    const state = enqueueAll('a', 'b');
+
+    expect(selectCommentViews(state.comments, true).map((view) => view.status)).toEqual([
       'sending',
+      'sending',
+    ]);
+    expect(selectCommentViews(state.comments, false).map((view) => view.status)).toEqual([
+      'queued-offline',
+      'queued-offline',
     ]);
   });
 });

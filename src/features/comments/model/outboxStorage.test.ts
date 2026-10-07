@@ -7,7 +7,7 @@ const base = { text: 'Hi', createdAt: '2026-10-07T10:00:00.000Z' };
 describe('outboxStorage', () => {
   it('round-trips unsent comments and drops sent ones', () => {
     const comments: readonly Comment[] = [
-      { ...base, clientId: 'a', status: 'sent', serverId: 's-1' },
+      { ...base, clientId: 'a', status: 'sent', serverId: 's-1', source: 'local' },
       { ...base, clientId: 'b', status: 'pending' },
       { ...base, clientId: 'c', status: 'failed' },
     ];
