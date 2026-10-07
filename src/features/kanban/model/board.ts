@@ -29,6 +29,7 @@ export type BoardAction =
   | { type: 'add'; card: Card; columnId: ColumnId }
   | { type: 'edit'; cardId: string; changes: CardDraft }
   | { type: 'delete'; cardId: string }
+  | { type: 'restore'; card: Card; columnId: ColumnId; index: number }
   | { type: 'move'; cardId: string; toColumn: ColumnId; toIndex: number };
 
 export const EMPTY_BOARD: BoardState = {
@@ -126,6 +127,18 @@ export function boardReducer(board: BoardState, action: BoardAction): BoardState
             (id) => id !== action.cardId,
           ),
         },
+      };
+    }
+    case 'restore': {
+      // Undo of a delete: put the card back where it was (clamped, as the column may have changed).
+      if (Object.hasOwn(board.cards, action.card.id)) {
+        return board;
+      }
+      const column = [...board.columns[action.columnId]];
+      column.splice(clamp(action.index, 0, column.length), 0, action.card.id);
+      return {
+        cards: { ...board.cards, [action.card.id]: action.card },
+        columns: { ...board.columns, [action.columnId]: column },
       };
     }
     case 'move':

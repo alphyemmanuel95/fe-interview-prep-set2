@@ -14,6 +14,39 @@
   align-items: start;
 }
 
+/* Sticky so the latest status (and Undo) is visible wherever the user scrolled to on mobile.
+   The live region itself stays mounted; only its visual chrome appears once there is a message. */
+.kanban__status {
+  position: sticky;
+  bottom: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.kanban__status--active {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-text);
+  color: var(--color-surface);
+}
+
+.kanban__announcement {
+  margin: 0;
+}
+
+.kanban__undo {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-surface);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-surface);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 @media (min-width: 48rem) {
   .kanban__columns {
     grid-template-columns: repeat(3, minmax(0, 1fr));

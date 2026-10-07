@@ -69,6 +69,18 @@ describe('boardReducer', () => {
     expect(next.columns.inProgress).toEqual([]);
     expect(next.cards['d']).toBeUndefined();
   });
+
+  it('restores a deleted card to its original column and position', () => {
+    const deleted = boardReducer(seeded, { type: 'delete', cardId: 'b' });
+    const restored = boardReducer(deleted, {
+      type: 'restore',
+      card: card('b'),
+      columnId: 'todo',
+      index: 1,
+    });
+
+    expect(restored).toEqual(seeded);
+  });
 });
 
 describe('isBoardState', () => {

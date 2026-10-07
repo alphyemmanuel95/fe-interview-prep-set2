@@ -71,6 +71,22 @@ describe('KanbanPage', () => {
     expect(screen.getByRole('heading', { name: 'To do (0)' })).toBeInTheDocument();
   });
 
+  it('undoes a delete, restoring the card to its original position', async () => {
+    seedStorage(seededBoard);
+    const user = userEvent.setup();
+    render(<KanbanPage />);
+
+    await user.click(screen.getByRole('button', { name: 'Delete "Write spec"' }));
+    expect(screen.getByRole('heading', { name: 'To do (1)' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Undo delete' }));
+    const titles = within(column(/^To do/))
+      .getAllByRole('heading', { level: 3 })
+      .map((heading) => heading.textContent);
+    expect(titles).toEqual(['Write spec', 'Review PR']);
+    expect(screen.queryByRole('button', { name: 'Undo delete' })).not.toBeInTheDocument();
+  });
+
   it('restores the board from localStorage after a remount', async () => {
     seedStorage(seededBoard);
     const user = userEvent.setup();

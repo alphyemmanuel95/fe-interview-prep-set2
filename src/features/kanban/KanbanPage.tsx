@@ -12,16 +12,30 @@ import { useAnnouncer } from './hooks/useAnnouncer';
 import { useBoard } from './hooks/useBoard';
 import { useCardDrag } from './hooks/useCardDrag';
 import { useFocusRequest } from './hooks/useFocusRequest';
+import type { Card, ColumnId } from './model/board';
 import { COLUMN_IDS, findCard, isNoopMove } from './model/board';
 import type { MoveTarget } from './model/moves';
 import { describeMove, getMoveTarget } from './model/moves';
 import './KanbanPage.css';
 
+type DeletedCard = Readonly<{ card: Card; columnId: ColumnId; index: number }>;
+
 export function KanbanPage(): JSX.Element {
   const { board, dispatch } = useBoard();
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
   const { announcement, announce } = useAnnouncer();
+  const [lastDeleted, setLastDeleted] = useState<DeletedCard | null>(null);
   const requestFocus = useFocusRequest();
+
+  const handleUndoDelete = (): void => {
+    if (lastDeleted === null) {
+      return;
+    }
+    dispatch({ type: 'restore', ...lastDeleted });
+    setLastDeleted(null);
+    announce(`Restored "${lastDeleted.card.title}".`);
+    requestFocus(cardElementId(lastDeleted.card.id));
+  };
 
   const moveCard = (cardId: string, target: MoveTarget): void => {
     // A drop back onto the card's own slot is not a move: nothing to dispatch or announce.
@@ -65,12 +79,15 @@ export function KanbanPage(): JSX.Element {
     },
     onDelete: (cardId) => {
       const location = findCard(board, cardId);
-      const title = board.cards[cardId]?.title ?? 'card';
-      dispatch({ type: 'delete', cardId });
-      announce(`Deleted "${title}".`);
-      if (location !== undefined) {
-        requestFocus(columnHeadingId(location.columnId));
+      const card = board.cards[cardId];
+      if (location === undefined || card === undefined) {
+        return;
       }
+      dispatch({ type: 'delete', cardId });
+      // Undo instead of a confirm dialog: deleting stays one click and mistakes are recoverable.
+      setLastDeleted({ card, columnId: location.columnId, index: location.index });
+      announce(`Deleted "${card.title}".`);
+      requestFocus(columnHeadingId(location.columnId));
     },
   };
 
@@ -97,9 +114,18 @@ export function KanbanPage(): JSX.Element {
           />
         ))}
       </div>
-      <p className="visually-hidden" aria-live="polite">
-        <span key={announcement.id}>{announcement.message}</span>
-      </p>
+      <div
+        className={`kanban__status${announcement.message === '' ? '' : ' kanban__status--active'}`}
+      >
+        <p className="kanban__announcement" aria-live="polite">
+          {announcement.message !== '' && <span key={announcement.id}>{announcement.message}</span>}
+        </p>
+        {lastDeleted !== null && (
+          <button type="button" className="kanban__undo" onClick={handleUndoDelete}>
+            Undo delete
+          </button>
+        )}
+      </div>
     </section>
   );
 }
