@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { loadFromStorage, saveToStorage } from '../../../shared/storage';
 import { isWidgetIdList, type WidgetId } from '../model/widgets';
 
@@ -17,17 +17,19 @@ export function useWidgetVisibility(): UseWidgetVisibilityResult {
     loadFromStorage(STORAGE_KEY, STORAGE_VERSION, isWidgetIdList, []),
   );
 
-  // Persisting is a side effect, so it lives here rather than inside the (pure) state updater.
-  useEffect(() => {
-    saveToStorage(STORAGE_KEY, STORAGE_VERSION, hiddenWidgetIds);
-  }, [hiddenWidgetIds]);
+  // Mirrors state so the stable handler can compute the next value outside the (pure) updater
+  // and persist it on the toggle path only; mounting never writes back what it just loaded.
+  const hiddenWidgetIdsRef = useRef(hiddenWidgetIds);
 
-  // Stable identity (functional update, no dependencies) so the memoized toggles don't
-  // re-render on every poll.
+  // Stable identity (no dependencies) so the memoized toggles don't re-render on every poll.
   const toggleWidget = useCallback((id: WidgetId): void => {
-    setHiddenWidgetIds((current) =>
-      current.includes(id) ? current.filter((hiddenId) => hiddenId !== id) : [...current, id],
-    );
+    const current = hiddenWidgetIdsRef.current;
+    const next = current.includes(id)
+      ? current.filter((hiddenId) => hiddenId !== id)
+      : [...current, id];
+    hiddenWidgetIdsRef.current = next;
+    setHiddenWidgetIds(next);
+    saveToStorage(STORAGE_KEY, STORAGE_VERSION, next);
   }, []);
 
   return { hiddenWidgetIds, toggleWidget };
