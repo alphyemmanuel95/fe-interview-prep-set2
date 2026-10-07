@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { JSX, MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { assertNever } from '../../../shared/assertNever';
@@ -8,29 +9,35 @@ import { isFromFeed } from '../model/navigation';
 import { PostMeta } from './PostMeta';
 import './PostDetail.css';
 
-type PostDetailProps = Readonly<{ postId: number; store: FeedStore }>;
+type PostDetailProps = Readonly<{ postId: number | null; store: FeedStore }>;
 
-function renderResult(result: PostResult, onRetry: () => void): JSX.Element {
+function headingFor(result: PostResult): string {
   switch (result.status) {
     case 'loading':
-      return <p className="post-detail__message">Loading post…</p>;
+      return 'Loading post…';
     case 'error':
-      return (
-        <div className="post-detail__error">
-          <p className="post-detail__message">Could not load this post: {result.error}</p>
-          <button type="button" className="post-detail__retry" onClick={onRetry}>
-            Retry
-          </button>
-        </div>
-      );
+      return "Couldn't load this post";
+    case 'notFound':
+      return 'Post not found';
     case 'success':
-      return (
-        <article className="post-detail__article">
-          <h1 className="post-detail__title">{result.post.title}</h1>
-          <p className="post-detail__body">{result.post.body}</p>
-          <PostMeta post={result.post} />
-        </article>
-      );
+      return result.post.title;
+    default:
+      return assertNever(result);
+  }
+}
+
+const ERROR_HINT = 'Check your connection and try again.';
+const NOT_FOUND_HINT = 'This post may have been removed, or the link is wrong.';
+
+function announcementFor(result: PostResult): string {
+  switch (result.status) {
+    case 'loading':
+    case 'success':
+      return '';
+    case 'error':
+      return `${headingFor(result)}. ${ERROR_HINT}`;
+    case 'notFound':
+      return headingFor(result);
     default:
       return assertNever(result);
   }
@@ -40,25 +47,68 @@ export function PostDetail({ postId, store }: PostDetailProps): JSX.Element {
   const { result, retry } = usePost(postId, store);
   const location = useLocation();
   const navigate = useNavigate();
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const heading = headingFor(result);
 
-  // Popping history (rather than pushing /feed) lets ScrollRestoration put the user back
-  // exactly where they were. Deep links have no feed entry behind them, so they follow the href.
+  // One persistent h1 (its text changes with the result) takes focus on arrival, so screen reader
+  // and keyboard users start at the new page's content rather than wherever the click left them.
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const previousTitle = document.title;
+    document.title = `${heading} · Infinite Feed`;
+    return () => {
+      document.title = previousTitle;
+    };
+  }, [heading]);
+
+  // Popping history (rather than pushing /feed) lets ScrollRestoration put the user back exactly
+  // where they were. That only works if the feed is still in memory: after a refresh on this page
+  // the store is empty, so we follow the href and push a fresh /feed instead.
   const handleBackClick = (event: MouseEvent<HTMLAnchorElement>): void => {
-    if (isFromFeed(location.state)) {
+    if (isFromFeed(location.state) && store.getState().posts.length > 0) {
       event.preventDefault();
       void navigate(-1);
     }
   };
 
+  // Retry unmounts its own button; park focus on the heading so it is not lost to <body>.
+  const handleRetryClick = (): void => {
+    headingRef.current?.focus();
+    retry();
+  };
+
   return (
-    <section className="post-detail">
+    <section className="post-detail" aria-labelledby="post-detail-title">
       <Link to=".." className="post-detail__back" onClick={handleBackClick}>
-        ← Back to feed
+        <span aria-hidden="true">←</span> Back to feed
       </Link>
-      <div role="status" aria-live="polite" className="visually-hidden">
-        {result.status === 'loading' ? 'Loading post' : ''}
-      </div>
-      {renderResult(result, retry)}
+      <article className="post-detail__article">
+        <h1 id="post-detail-title" ref={headingRef} tabIndex={-1} className="post-detail__title">
+          {heading}
+        </h1>
+        {result.status === 'error' && (
+          <>
+            <p className="post-detail__message post-detail__message--error">{ERROR_HINT}</p>
+            <button type="button" className="post-detail__retry" onClick={handleRetryClick}>
+              Retry
+            </button>
+          </>
+        )}
+        {result.status === 'notFound' && <p className="post-detail__message">{NOT_FOUND_HINT}</p>}
+        {result.status === 'success' && (
+          <>
+            <p className="post-detail__body">{result.post.body}</p>
+            <PostMeta post={result.post} />
+          </>
+        )}
+      </article>
+      {/* Mounted up front so the outcome is announced; the focused h1 already reads "Loading". */}
+      <p role="status" className="visually-hidden">
+        {announcementFor(result)}
+      </p>
     </section>
   );
 }

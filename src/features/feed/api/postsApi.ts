@@ -52,6 +52,8 @@ function parsePostsPage(value: unknown): PostsPage | null {
   return { posts, total, skip };
 }
 
+const HTTP_NOT_FOUND = 404;
+
 async function fetchJson(url: string, signal: AbortSignal): Promise<unknown> {
   const response = await fetch(url, { signal });
   if (!response.ok) {
@@ -69,14 +71,19 @@ export async function fetchPostsPage(skip: number, signal: AbortSignal): Promise
   return page;
 }
 
-export async function fetchPost(postId: number, signal: AbortSignal): Promise<Post> {
-  const post = parsePost(await fetchJson(`${POSTS_URL}/${postId}`, signal));
+// Resolves to null for a missing post: "not found" is an expected outcome with its own UI
+// (no Retry), so it is a value rather than an exception like network or server failures.
+export async function fetchPost(postId: number, signal: AbortSignal): Promise<Post | null> {
+  const response = await fetch(`${POSTS_URL}/${postId}`, { signal });
+  if (response.status === HTTP_NOT_FOUND) {
+    return null;
+  }
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+  const post = parsePost(await response.json());
   if (!post) {
     throw new Error('Unexpected post response');
   }
   return post;
-}
-
-export function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Something went wrong';
 }

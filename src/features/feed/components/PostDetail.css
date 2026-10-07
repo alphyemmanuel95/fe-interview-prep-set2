@@ -37,18 +37,12 @@
   color: var(--color-text-muted);
 }
 
-.post-detail__error {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-3);
-}
-
-.post-detail__error .post-detail__message {
+.post-detail__message--error {
   color: var(--color-danger);
 }
 
 .post-detail__retry {
+  align-self: flex-start;
   padding: var(--space-2) var(--space-4);
   border: 0;
   border-radius: var(--radius);
