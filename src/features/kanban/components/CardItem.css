@@ -1,0 +1,86 @@
+.kanban-card {
+  position: relative;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: grab;
+}
+
+.kanban-card--dragging {
+  opacity: 0.4;
+}
+
+/* Drop indicator drawn with a pseudo-element so it never shifts layout mid-drag. */
+.kanban-card--drop-before::before {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--space-2) / 2 - 2px);
+  right: 0;
+  left: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-primary);
+}
+
+.kanban-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.kanban-card__title {
+  margin: 0;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.kanban-card__description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.kanban-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.kanban-card__moves {
+  display: flex;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.kanban-card__button {
+  min-height: 2rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.kanban-card__button:hover:not(:disabled) {
+  background: var(--color-surface-alt);
+}
+
+.kanban-card__button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.kanban-card__button--danger {
+  color: var(--color-danger);
+}
+
+.kanban-card__button--icon {
+  min-width: 2rem;
+}

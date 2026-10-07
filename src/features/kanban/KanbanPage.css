@@ -1,0 +1,21 @@
+.kanban__title {
+  margin: 0 0 var(--space-1);
+}
+
+.kanban__hint {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.kanban__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (min-width: 48rem) {
+  .kanban__columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
