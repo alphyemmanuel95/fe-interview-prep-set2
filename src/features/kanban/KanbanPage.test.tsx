@@ -31,7 +31,7 @@ describe('KanbanPage', () => {
     expect(screen.getByRole('heading', { name: 'To do (2)' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'In progress (0)' })).toBeInTheDocument();
 
-    const moveRight = screen.getByRole('button', { name: 'Move "Write spec" right' });
+    const moveRight = screen.getByRole('button', { name: 'Move "Write spec" to In progress' });
     moveRight.focus();
     await user.keyboard('{Enter}');
 
@@ -40,7 +40,7 @@ describe('KanbanPage', () => {
     expect(within(column(/^In progress/)).getByText('Write spec')).toBeInTheDocument();
     expect(within(column(/^To do/)).queryByText('Write spec')).not.toBeInTheDocument();
     // Focus follows the card so the user can keep pressing the same control.
-    expect(screen.getByRole('button', { name: 'Move "Write spec" right' })).toHaveFocus();
+    expect(screen.getByRole('button', { name: 'Move "Write spec" to Done' })).toHaveFocus();
     expect(screen.getByText('Moved "Write spec" to In progress, position 1 of 1.')).toBeVisible();
   });
 

@@ -71,7 +71,7 @@ export function Column({
                 isEditing={editingCardId === cardId}
                 isDragging={draggingCardId === cardId}
                 isDropBefore={dropIndex !== null && visibleIds[dropIndex] === cardId}
-                canMove={(direction) => getMoveTarget(board, cardId, direction) !== undefined}
+                getMoveTarget={(direction) => getMoveTarget(board, cardId, direction)}
                 dragProps={getCardDragProps(cardId)}
                 onMove={(direction) => {
                   handlers.onMove(cardId, direction);

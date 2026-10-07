@@ -1,7 +1,8 @@
 import type { JSX } from 'react';
 import type { CardDragProps } from '../hooks/useCardDrag';
 import type { Card, CardDraft } from '../model/board';
-import type { MoveDirection } from '../model/moves';
+import { COLUMN_TITLES } from '../model/board';
+import type { MoveDirection, MoveTarget } from '../model/moves';
 import { MOVE_DIRECTIONS } from '../model/moves';
 import { CardForm } from './CardForm';
 import { cardElementId, editButtonId, moveButtonId } from './elementIds';
@@ -14,12 +15,24 @@ const MOVE_LABELS = {
   down: { symbol: '↓', text: 'down' },
 } as const satisfies Record<MoveDirection, { symbol: string; text: string }>;
 
+// Cross-column buttons name their destination: "right" is wrong once columns stack on mobile.
+function getMoveLabel(
+  cardTitle: string,
+  direction: MoveDirection,
+  target: MoveTarget | undefined,
+): string {
+  const isCrossColumn = direction === 'left' || direction === 'right';
+  return isCrossColumn && target !== undefined
+    ? `Move "${cardTitle}" to ${COLUMN_TITLES[target.toColumn]}`
+    : `Move "${cardTitle}" ${MOVE_LABELS[direction].text}`;
+}
+
 type CardItemProps = Readonly<{
   card: Card;
   isEditing: boolean;
   isDragging: boolean;
   isDropBefore: boolean;
-  canMove: (direction: MoveDirection) => boolean;
+  getMoveTarget: (direction: MoveDirection) => MoveTarget | undefined;
   dragProps: CardDragProps;
   onMove: (direction: MoveDirection) => void;
   onEditStart: () => void;
@@ -33,7 +46,7 @@ export function CardItem({
   isEditing,
   isDragging,
   isDropBefore,
-  canMove,
+  getMoveTarget,
   dragProps,
   onMove,
   onEditStart,
@@ -88,22 +101,24 @@ export function CardItem({
             Delete
           </button>
           <div className="kanban-card__moves" role="group" aria-label={`Move "${card.title}"`}>
-            {MOVE_DIRECTIONS.map((direction) => (
-              <button
-                key={direction}
-                id={moveButtonId(card.id, direction)}
-                type="button"
-                className="kanban-card__button kanban-card__button--icon"
-                aria-label={`Move "${card.title}" ${MOVE_LABELS[direction].text}`}
-                title={`Move ${MOVE_LABELS[direction].text}`}
-                disabled={!canMove(direction)}
-                onClick={() => {
-                  onMove(direction);
-                }}
-              >
-                <span aria-hidden="true">{MOVE_LABELS[direction].symbol}</span>
-              </button>
-            ))}
+            {MOVE_DIRECTIONS.map((direction) => {
+              const target = getMoveTarget(direction);
+              return (
+                <button
+                  key={direction}
+                  id={moveButtonId(card.id, direction)}
+                  type="button"
+                  className="kanban-card__button kanban-card__button--icon"
+                  aria-label={getMoveLabel(card.title, direction, target)}
+                  disabled={target === undefined}
+                  onClick={() => {
+                    onMove(direction);
+                  }}
+                >
+                  <span aria-hidden="true">{MOVE_LABELS[direction].symbol}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </article>
