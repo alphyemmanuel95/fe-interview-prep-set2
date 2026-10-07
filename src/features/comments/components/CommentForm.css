@@ -45,6 +45,6 @@
 }
 
 .comment-form__submit:disabled {
-  opacity: 0.55;
+  opacity: var(--comments-disabled-opacity);
   cursor: not-allowed;
 }

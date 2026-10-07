@@ -3,13 +3,14 @@
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
-  border-left-width: 4px;
+  border-left-width: var(--comments-accent-width);
   border-radius: var(--radius);
   background: var(--color-surface);
 }
 
 .comment--sending,
-.comment--queued {
+.comment--queued-offline,
+.comment--blocked {
   border-left-color: var(--color-warning);
   border-left-style: dashed;
 }
@@ -40,12 +41,13 @@
 .comment__badge {
   padding: 0 var(--space-2);
   border: 1px solid currentColor;
-  border-radius: 999px;
+  border-radius: var(--comments-pill-radius);
   font-weight: 600;
 }
 
 .comment__badge--sending,
-.comment__badge--queued {
+.comment__badge--queued-offline,
+.comment__badge--blocked {
   color: var(--color-warning);
 }
 
@@ -54,7 +56,9 @@
 }
 
 .comment__badge--sent {
+  border-color: transparent;
   color: var(--color-success);
+  font-weight: 400;
 }
 
 .comment__retry {
