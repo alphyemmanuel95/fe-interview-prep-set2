@@ -12,6 +12,8 @@ export type PostsPage = Readonly<{
   posts: readonly Post[];
   total: number;
   skip: number;
+  /** Items the server sent, before malformed ones were dropped; drives the skip cursor. */
+  itemCount: number;
 }>;
 
 export function parsePostId(value: string | undefined): number | null {

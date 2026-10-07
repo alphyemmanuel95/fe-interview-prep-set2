@@ -24,7 +24,7 @@ describe('feedReducer', () => {
     const loading = feedReducer(initialFeedState, { type: 'pageRequested' });
     const state = feedReducer(loading, {
       type: 'pageLoaded',
-      page: { posts: [makePost(1), makePost(2)], skip: 0, total: 5 },
+      page: { posts: [makePost(1), makePost(2)], skip: 0, total: 5, itemCount: 2 },
     });
     expect(state.nextSkip).toBe(2);
     expect(state.phase).toEqual({ status: 'idle' });
@@ -33,7 +33,7 @@ describe('feedReducer', () => {
   it('marks the feed done once the last page arrives', () => {
     const state = feedReducer(initialFeedState, {
       type: 'pageLoaded',
-      page: { posts: [makePost(1)], skip: 0, total: 1 },
+      page: { posts: [makePost(1)], skip: 0, total: 1, itemCount: 1 },
     });
     expect(state.phase).toEqual({ status: 'done' });
   });
@@ -41,7 +41,7 @@ describe('feedReducer', () => {
   it('keeps loaded posts when a page fails', () => {
     const loaded = feedReducer(initialFeedState, {
       type: 'pageLoaded',
-      page: { posts: [makePost(1)], skip: 0, total: 3 },
+      page: { posts: [makePost(1)], skip: 0, total: 3, itemCount: 1 },
     });
     const failed = feedReducer(loaded, { type: 'pageFailed' });
     expect(failed.posts).toHaveLength(1);

@@ -44,8 +44,8 @@ export function feedReducer(state: FeedState, action: FeedAction): FeedState {
       return { ...state, phase: { status: 'loading' } };
     case 'pageLoaded': {
       const { page } = action;
-      const nextSkip = page.skip + page.posts.length;
-      const isLastPage = page.posts.length === 0 || nextSkip >= page.total;
+      const nextSkip = page.skip + page.itemCount;
+      const isLastPage = page.itemCount === 0 || nextSkip >= page.total;
       return {
         posts: appendUniquePosts(state.posts, page.posts),
         nextSkip,

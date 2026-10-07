@@ -41,15 +41,11 @@ function parsePostsPage(value: unknown): PostsPage | null {
   if (typeof total !== 'number' || typeof skip !== 'number') {
     return null;
   }
-  const posts: Post[] = [];
-  for (const item of value['posts']) {
-    const post = parsePost(item);
-    if (!post) {
-      return null;
-    }
-    posts.push(post);
-  }
-  return { posts, total, skip };
+  const items: readonly unknown[] = value['posts'];
+  // One malformed post should not cost the user the whole page, so it is dropped on its own.
+  // `itemCount` keeps the raw count, so the cursor still advances past the dropped item.
+  const posts = items.map(parsePost).filter((post): post is Post => post !== null);
+  return { posts, total, skip, itemCount: items.length };
 }
 
 const HTTP_NOT_FOUND = 404;
