@@ -1,3 +1,23 @@
+/* Feature-scoped tokens: kept here rather than in the shared src/index.css so other features
+   (and their branches) are unaffected. Every kanban component renders inside `.kanban`. */
+.kanban {
+  --kanban-target-size: 2rem;
+  --kanban-indicator-size: 4px;
+  --kanban-drop-outline-size: 2px;
+  --kanban-font-size-sm: 0.875rem;
+  --kanban-font-size-md: 1rem;
+  --kanban-font-size-lg: 1.125rem;
+  --kanban-opacity-disabled: 0.4;
+  --kanban-opacity-dragging: 0.4;
+}
+
+/* Touch screens: WCAG 2.5.5 recommends 44px targets. */
+@media (pointer: coarse) {
+  .kanban {
+    --kanban-target-size: 2.75rem;
+  }
+}
+
 .kanban__title {
   margin: 0 0 var(--space-1);
 }
@@ -38,6 +58,7 @@
 }
 
 .kanban__undo {
+  min-height: var(--kanban-target-size);
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-surface);
   border-radius: var(--radius);
@@ -47,6 +68,8 @@
   cursor: pointer;
 }
 
+/* 48rem (768px): three columns once each is wide enough for a card's action row.
+   Custom properties can't be used in media queries, hence the literal. */
 @media (min-width: 48rem) {
   .kanban__columns {
     grid-template-columns: repeat(3, minmax(0, 1fr));

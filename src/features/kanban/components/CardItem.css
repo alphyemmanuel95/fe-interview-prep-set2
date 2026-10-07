@@ -8,18 +8,18 @@
 }
 
 .kanban-card--dragging {
-  opacity: 0.4;
+  opacity: var(--kanban-opacity-dragging);
 }
 
 /* Drop indicator drawn with a pseudo-element so it never shifts layout mid-drag. */
 .kanban-card--drop-before::before {
   content: '';
   position: absolute;
-  top: calc(-1 * var(--space-2) / 2 - 2px);
+  top: calc(-1 * (var(--space-2) + var(--kanban-indicator-size)) / 2);
   right: 0;
   left: 0;
-  height: 4px;
-  border-radius: 2px;
+  height: var(--kanban-indicator-size);
+  border-radius: calc(var(--kanban-indicator-size) / 2);
   background: var(--color-primary);
 }
 
@@ -32,14 +32,14 @@
 
 .kanban-card__title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--kanban-font-size-md);
   overflow-wrap: anywhere;
 }
 
 .kanban-card__description {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: var(--kanban-font-size-sm);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
@@ -58,13 +58,13 @@
 }
 
 .kanban-card__button {
-  min-height: 2rem;
+  min-height: var(--kanban-target-size);
   padding: 0 var(--space-2);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   background: var(--color-surface);
   color: var(--color-text);
-  font-size: 0.875rem;
+  font-size: var(--kanban-font-size-sm);
   cursor: pointer;
 }
 
@@ -73,7 +73,7 @@
 }
 
 .kanban-card__button:disabled {
-  opacity: 0.4;
+  opacity: var(--kanban-opacity-disabled);
   cursor: not-allowed;
 }
 
@@ -82,5 +82,5 @@
 }
 
 .kanban-card__button--icon {
-  min-width: 2rem;
+  min-width: var(--kanban-target-size);
 }

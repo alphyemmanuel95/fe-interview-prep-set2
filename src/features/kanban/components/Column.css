@@ -4,7 +4,7 @@
   gap: var(--space-3);
   min-width: 0;
   padding: var(--space-3);
-  border: 2px dashed transparent;
+  border: var(--kanban-drop-outline-size) dashed transparent;
   border-radius: var(--radius);
   background: var(--color-surface-alt);
 }
@@ -15,7 +15,7 @@
 
 .kanban-column__heading {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: var(--kanban-font-size-lg);
 }
 
 .kanban-column__count {
@@ -26,7 +26,7 @@
 .kanban-column__empty {
   margin: 0;
   color: var(--color-text-muted);
-  font-size: 0.875rem;
+  font-size: var(--kanban-font-size-sm);
 }
 
 .kanban-column__list {
@@ -41,8 +41,8 @@
 
 .kanban-column__list--drop-end::after {
   content: '';
-  height: 4px;
-  border-radius: 2px;
+  height: var(--kanban-indicator-size);
+  border-radius: calc(var(--kanban-indicator-size) / 2);
   background: var(--color-primary);
 }
 
