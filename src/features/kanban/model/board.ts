@@ -51,6 +51,24 @@ export function findCard(board: BoardState, cardId: string): CardLocation | unde
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
 
+/** True when a move would leave the card where it is (e.g. dropped back onto its own slot). */
+export function isNoopMove(
+  board: BoardState,
+  cardId: string,
+  toColumn: ColumnId,
+  toIndex: number,
+): boolean {
+  const from = findCard(board, cardId);
+  if (from === undefined) {
+    return true;
+  }
+  if (from.columnId !== toColumn) {
+    return false;
+  }
+  const lastIndexWithoutCard = board.columns[toColumn].length - 1;
+  return clamp(toIndex, 0, lastIndexWithoutCard) === from.index;
+}
+
 function moveCard(
   board: BoardState,
   cardId: string,
@@ -58,7 +76,8 @@ function moveCard(
   toIndex: number,
 ): BoardState {
   const from = findCard(board, cardId);
-  if (from === undefined) {
+  // Returning the same reference lets React bail out and skips a pointless localStorage write.
+  if (from === undefined || isNoopMove(board, cardId, toColumn, toIndex)) {
     return board;
   }
   // Remove first, then insert: `toIndex` is interpreted against the target column *without* the

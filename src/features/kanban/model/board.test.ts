@@ -37,6 +37,15 @@ describe('boardReducer', () => {
     expect(next.columns.todo).toEqual(['b', 'c', 'a']);
   });
 
+  it('returns the same board when a card is dropped back onto its own position', () => {
+    expect(boardReducer(seeded, { type: 'move', cardId: 'b', toColumn: 'todo', toIndex: 1 })).toBe(
+      seeded,
+    );
+    expect(boardReducer(seeded, { type: 'move', cardId: 'c', toColumn: 'todo', toIndex: 99 })).toBe(
+      seeded,
+    );
+  });
+
   it('clamps an out-of-range index to the end of the column', () => {
     const next = boardReducer(seeded, { type: 'move', cardId: 'a', toColumn: 'done', toIndex: 99 });
 

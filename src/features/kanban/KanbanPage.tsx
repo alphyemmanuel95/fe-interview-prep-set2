@@ -11,7 +11,7 @@ import {
 import { useBoard } from './hooks/useBoard';
 import { useCardDrag } from './hooks/useCardDrag';
 import { useFocusRequest } from './hooks/useFocusRequest';
-import { COLUMN_IDS, findCard } from './model/board';
+import { COLUMN_IDS, findCard, isNoopMove } from './model/board';
 import type { MoveTarget } from './model/moves';
 import { describeMove, getMoveTarget } from './model/moves';
 import './KanbanPage.css';
@@ -23,6 +23,10 @@ export function KanbanPage(): JSX.Element {
   const requestFocus = useFocusRequest();
 
   const moveCard = (cardId: string, target: MoveTarget): void => {
+    // A drop back onto the card's own slot is not a move: nothing to dispatch or announce.
+    if (isNoopMove(board, cardId, target.toColumn, target.toIndex)) {
+      return;
+    }
     setAnnouncement(describeMove(board, cardId, target));
     dispatch({ type: 'move', cardId, ...target });
   };
