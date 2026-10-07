@@ -1,4 +1,4 @@
-import type { JSX, SyntheticEvent } from 'react';
+import type { JSX, KeyboardEvent, SyntheticEvent } from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
 import type { CardDraft } from '../model/board';
 import './CardForm.css';
@@ -51,6 +51,15 @@ export function CardForm({
     setHasTitleError(false);
     setTitle(initialDraft.title);
     setDescription(initialDraft.description);
+    // For the add form, which stays mounted: ready for the next card without re-tabbing.
+    titleRef.current?.focus();
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+    if (event.key === 'Escape' && onCancel !== undefined) {
+      event.preventDefault();
+      onCancel();
+    }
   };
 
   return (
@@ -62,6 +71,7 @@ export function CardForm({
         ref={titleRef}
         id={titleId}
         className="card-form__input"
+        onKeyDown={handleKeyDown}
         value={title}
         required
         aria-invalid={hasTitleError}
@@ -81,6 +91,7 @@ export function CardForm({
       <textarea
         id={`${id}-description`}
         className="card-form__input card-form__textarea"
+        onKeyDown={handleKeyDown}
         value={description}
         rows={2}
         onChange={(event) => {

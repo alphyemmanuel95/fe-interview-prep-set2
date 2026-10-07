@@ -58,6 +58,12 @@ describe('KanbanPage', () => {
     await user.click(within(form).getByRole('button', { name: 'Add card' }));
     expect(screen.getByRole('heading', { name: 'To do (1)' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Ship it' })).toBeInTheDocument();
+    expect(within(form).getByLabelText(/Title/)).toHaveFocus();
+
+    await user.click(screen.getByRole('button', { name: 'Edit "Ship it"' }));
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('form', { name: 'Edit "Ship it"' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit "Ship it"' })).toHaveFocus();
 
     await user.click(screen.getByRole('button', { name: 'Edit "Ship it"' }));
     const editForm = screen.getByRole('form', { name: 'Edit "Ship it"' });
