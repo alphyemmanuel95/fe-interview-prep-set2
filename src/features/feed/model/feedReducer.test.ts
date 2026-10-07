@@ -43,9 +43,9 @@ describe('feedReducer', () => {
       type: 'pageLoaded',
       page: { posts: [makePost(1)], skip: 0, total: 3 },
     });
-    const failed = feedReducer(loaded, { type: 'pageFailed', error: 'Offline' });
+    const failed = feedReducer(loaded, { type: 'pageFailed' });
     expect(failed.posts).toHaveLength(1);
-    expect(failed.phase).toEqual({ status: 'error', error: 'Offline' });
+    expect(failed.phase).toEqual({ status: 'error' });
   });
 
   it('returns to idle when an in-flight request is cancelled', () => {

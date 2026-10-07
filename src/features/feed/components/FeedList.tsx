@@ -22,9 +22,7 @@ export function FeedList({ store }: FeedListProps): JSX.Element {
           </li>
         ))}
       </ul>
-      {phase.status === 'idle' && (
-        <div ref={sentinelRef} className="feed__sentinel" data-testid="feed-sentinel" />
-      )}
+      {phase.status === 'idle' && <div ref={sentinelRef} className="feed__sentinel" />}
       <FeedStatus phase={phase} postCount={posts.length} onRetry={retry} />
     </section>
   );

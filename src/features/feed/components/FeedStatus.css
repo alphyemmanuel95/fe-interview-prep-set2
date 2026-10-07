@@ -1,6 +1,8 @@
 .feed-status {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   min-height: 3rem;
   padding: var(--space-4) 0;
   text-align: center;
@@ -14,14 +16,7 @@
   color: var(--color-text-muted);
 }
 
-.feed-status__error {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.feed-status__error .feed-status__message {
+.feed-status__message--error {
   color: var(--color-danger);
 }
 

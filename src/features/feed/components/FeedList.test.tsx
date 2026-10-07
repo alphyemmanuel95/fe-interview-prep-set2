@@ -113,7 +113,9 @@ describe('FeedList', () => {
 
     scrollSentinelIntoView(1);
     const retryButton = await screen.findByRole('button', { name: 'Retry' });
-    expect(screen.getByText(/Could not load posts/)).toBeInTheDocument();
+    const status = screen.getByRole('status');
+    expect(status).toHaveTextContent("Couldn't load posts. Check your connection and try again.");
+    expect(status).not.toContainElement(retryButton);
 
     scrollSentinelIntoView(3);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -121,6 +123,7 @@ describe('FeedList', () => {
     await user.click(retryButton);
     expect(await screen.findByRole('link', { name: 'Post 1' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
+    expect(status).toHaveFocus();
     expect(requestedSkips()).toEqual(['0', '0']);
   });
 

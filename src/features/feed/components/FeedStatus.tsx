@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { JSX } from 'react';
 import { assertNever } from '../../../shared/assertNever';
 import type { FeedPhase } from '../model/feedReducer';
@@ -9,38 +10,51 @@ type FeedStatusProps = Readonly<{
   onRetry: () => void;
 }>;
 
-function renderPhase(phase: FeedPhase, postCount: number, onRetry: () => void): JSX.Element | null {
+function describePhase(phase: FeedPhase, postCount: number): string {
   switch (phase.status) {
     case 'idle':
-      return null;
+      return '';
     case 'loading':
-      return (
-        <p className="feed-status__message">
-          <span className="feed-status__spinner" aria-hidden="true" />
-          {postCount === 0 ? 'Loading posts…' : 'Loading more posts…'}
-        </p>
-      );
+      return postCount === 0 ? 'Loading posts…' : 'Loading more posts…';
     case 'error':
-      return (
-        <div className="feed-status__error">
-          <p className="feed-status__message">Could not load posts: {phase.error}</p>
-          <button type="button" className="feed-status__retry" onClick={onRetry}>
-            Retry
-          </button>
-        </div>
-      );
+      return "Couldn't load posts. Check your connection and try again.";
     case 'done':
-      return <p className="feed-status__message">You&apos;ve reached the end</p>;
+      return "You've reached the end";
     default:
       return assertNever(phase);
   }
 }
 
-// The live region stays mounted for every phase so screen readers reliably announce changes.
 export function FeedStatus({ phase, postCount, onRetry }: FeedStatusProps): JSX.Element {
+  const messageRef = useRef<HTMLParagraphElement>(null);
+  const isError = phase.status === 'error';
+
+  // The Retry button unmounts as soon as it is pressed; moving focus to the status message
+  // keeps keyboard and screen reader users in place instead of dropping focus to <body>.
+  const handleRetryClick = (): void => {
+    messageRef.current?.focus();
+    onRetry();
+  };
+
   return (
-    <div className="feed-status" role="status" aria-live="polite">
-      {renderPhase(phase, postCount, onRetry)}
+    <div className="feed-status">
+      {/* Always mounted so every change is announced; only the message is live, not the button. */}
+      <p
+        ref={messageRef}
+        className={
+          isError ? 'feed-status__message feed-status__message--error' : 'feed-status__message'
+        }
+        role="status"
+        tabIndex={-1}
+      >
+        {phase.status === 'loading' && <span className="feed-status__spinner" aria-hidden="true" />}
+        {describePhase(phase, postCount)}
+      </p>
+      {isError && (
+        <button type="button" className="feed-status__retry" onClick={handleRetryClick}>
+          Retry
+        </button>
+      )}
     </div>
   );
 }

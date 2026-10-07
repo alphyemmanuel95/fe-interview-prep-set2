@@ -4,7 +4,7 @@ import type { Post, PostsPage } from './post';
 export type FeedPhase =
   | { readonly status: 'idle' }
   | { readonly status: 'loading' }
-  | { readonly status: 'error'; readonly error: string }
+  | { readonly status: 'error' }
   | { readonly status: 'done' };
 
 export type FeedState = Readonly<{
@@ -16,7 +16,7 @@ export type FeedState = Readonly<{
 export type FeedAction =
   | { readonly type: 'pageRequested' }
   | { readonly type: 'pageLoaded'; readonly page: PostsPage }
-  | { readonly type: 'pageFailed'; readonly error: string }
+  | { readonly type: 'pageFailed' }
   | { readonly type: 'pageCancelled' };
 
 export const initialFeedState: FeedState = { posts: [], nextSkip: 0, phase: { status: 'idle' } };
@@ -53,7 +53,7 @@ export function feedReducer(state: FeedState, action: FeedAction): FeedState {
       };
     }
     case 'pageFailed':
-      return { ...state, phase: { status: 'error', error: action.error } };
+      return { ...state, phase: { status: 'error' } };
     case 'pageCancelled':
       return state.phase.status === 'loading' ? { ...state, phase: { status: 'idle' } } : state;
     default:

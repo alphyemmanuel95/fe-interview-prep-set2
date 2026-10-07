@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
-import { fetchPostsPage, toErrorMessage } from '../api/postsApi';
+import { fetchPostsPage } from '../api/postsApi';
 import type { FeedPhase } from '../model/feedReducer';
 import type { FeedStore } from '../model/feedStore';
 import type { Post } from '../model/post';
@@ -29,12 +29,9 @@ export function useInfinitePosts(store: FeedStore): InfinitePosts {
     try {
       const page = await fetchPostsPage(store.getState().nextSkip, controller.signal);
       store.dispatch({ type: 'pageLoaded', page });
-    } catch (error: unknown) {
-      store.dispatch(
-        controller.signal.aborted
-          ? { type: 'pageCancelled' }
-          : { type: 'pageFailed', error: toErrorMessage(error) },
-      );
+    } catch {
+      // The UI shows one friendly message for every failure, so the raw error is not kept.
+      store.dispatch({ type: controller.signal.aborted ? 'pageCancelled' : 'pageFailed' });
     } finally {
       inFlightRef.current = null;
     }
