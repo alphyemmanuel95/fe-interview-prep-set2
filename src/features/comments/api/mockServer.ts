@@ -31,6 +31,8 @@ export type MockServerOptions = Readonly<{
   random: () => number;
   delay: Delay;
   failureRate: number;
+  /** Reads never fail by default; tests and demos can opt in. */
+  historyFailureRate: number;
   seed: readonly ServerComment[];
 }>;
 
@@ -73,6 +75,7 @@ export function createMockServer(options: Partial<MockServerOptions> = {}): Mock
     random = Math.random,
     delay = sleep,
     failureRate = FAILURE_RATE,
+    historyFailureRate = 0,
     seed = SEED_COMMENTS,
   } = options;
   // A Map keeps insertion order (= server order) and makes `clientId` a unique key.
@@ -99,6 +102,9 @@ export function createMockServer(options: Partial<MockServerOptions> = {}): Mock
 
     getComments: async (signal) => {
       await delay(latency(), signal);
+      if (random() < historyFailureRate) {
+        throw new Error('Could not load comments');
+      }
       return [...store.values()];
     },
 

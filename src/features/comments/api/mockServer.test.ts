@@ -37,4 +37,12 @@ describe('createMockServer', () => {
     await expect(server.postComment(comment)).rejects.toThrow('Server unavailable');
     expect(server.snapshot()).toEqual([]);
   });
+
+  it('fails history reads only when asked to', async () => {
+    const reliable = createMockServer({ delay: instant, seed: [] });
+    const flaky = createMockServer({ delay: instant, historyFailureRate: 1, seed: [] });
+
+    await expect(reliable.getComments()).resolves.toEqual([]);
+    await expect(flaky.getComments()).rejects.toThrow('Could not load comments');
+  });
 });
