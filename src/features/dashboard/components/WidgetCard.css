@@ -1,0 +1,17 @@
+.widget-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.widget-card__title {
+  margin: 0;
+  font-size: var(--dashboard-font-size-label);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}

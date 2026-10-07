@@ -1,0 +1,12 @@
+.sales-widget__value {
+  margin: 0;
+  font-size: var(--dashboard-font-size-metric);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.sales-widget__caption {
+  margin: 0;
+  color: var(--color-text-muted);
+}
