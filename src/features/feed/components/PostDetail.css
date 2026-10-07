@@ -57,3 +57,9 @@
     padding: var(--space-4);
   }
 }
+
+/* The heading is only a programmatic focus target (tabIndex -1), never something users tab to,
+   so a focus ring there would read as a stray selection box. */
+.post-detail__title:focus {
+  outline: none;
+}

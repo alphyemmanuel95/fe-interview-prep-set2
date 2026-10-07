@@ -49,3 +49,8 @@
     animation: none;
   }
 }
+
+/* Programmatic focus target after Retry (tabIndex -1), not a control, so no focus ring. */
+.feed-status__message:focus {
+  outline: none;
+}
