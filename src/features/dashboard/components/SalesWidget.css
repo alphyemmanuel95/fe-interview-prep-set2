@@ -1,6 +1,6 @@
 .sales-widget__value {
   margin: 0;
-  font-size: 2rem;
+  font-size: var(--dashboard-font-size-metric);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;

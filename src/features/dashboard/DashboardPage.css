@@ -1,4 +1,9 @@
 .dashboard {
+  /* Feature-scoped type scale: kept here, not in the shared src/index.css tokens. */
+  --dashboard-font-size-metric: 2rem;
+  --dashboard-font-size-label: 1rem;
+  --dashboard-font-size-small: 0.875rem;
+
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
