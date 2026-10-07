@@ -8,9 +8,15 @@
 @media (min-width: 56rem) {
   .cart-page__layout {
     grid-template-columns: minmax(0, 1fr) 22rem;
+    grid-template-areas: 'products cart';
+  }
+
+  .cart-page__products {
+    grid-area: products;
   }
 
   .cart-page__layout > .cart {
+    grid-area: cart;
     position: sticky;
     top: var(--space-4);
   }

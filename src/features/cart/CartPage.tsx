@@ -35,7 +35,16 @@ export function CartPage(): JSX.Element {
   return (
     <section className="cart-page" aria-labelledby="page-title">
       <h1 id="page-title">Shopping Cart</h1>
+      {/* Cart comes first in the DOM so it sits above the long product list on mobile;
+          on desktop the grid places it in the right-hand column. */}
       <div className="cart-page__layout">
+        <CartPanel
+          lines={lines}
+          totals={totals}
+          isLoading={productsState.status === 'loading'}
+          onQuantityChange={handleQuantityChange}
+          onRemove={handleRemove}
+        />
         <div className="cart-page__products">
           <h2 className="visually-hidden">Products</h2>
           <div aria-live="polite">
@@ -53,13 +62,6 @@ export function CartPage(): JSX.Element {
             <ProductList products={products} quantityInCart={quantityInCart} onAdd={handleAdd} />
           )}
         </div>
-        <CartPanel
-          lines={lines}
-          totals={totals}
-          isLoading={productsState.status === 'loading'}
-          onQuantityChange={handleQuantityChange}
-          onRemove={handleRemove}
-        />
       </div>
     </section>
   );
