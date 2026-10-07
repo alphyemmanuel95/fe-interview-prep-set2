@@ -29,7 +29,7 @@ async function post(user: ReturnType<typeof userEvent.setup>, text: string): Pro
   await user.click(screen.getByRole('button', { name: 'Post' }));
 }
 
-const thread = (): HTMLElement => screen.getByRole('list', { name: /comments?$/ });
+const thread = (): HTMLElement => screen.getByRole('list', { name: 'Comment thread' });
 
 describe('CommentsPage', () => {
   it('queues comments offline and sends all of them in order, once, when back online', async () => {

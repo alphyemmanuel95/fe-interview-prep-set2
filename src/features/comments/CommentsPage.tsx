@@ -67,11 +67,11 @@ export function CommentsPage({ api = commentsApi }: CommentsPageProps): JSX.Elem
         {describeOutbox(items.map((item) => item.status))}
       </p>
 
-      <h2 className="comments__heading" id="comments-heading">
-        {plural(comments.length, 'comment')}
+      <h2 className="comments__heading">
+        {isHistoryLoading ? 'Thread' : plural(comments.length, 'comment')}
       </h2>
       {isHistoryLoading && <p className="comments__loading">Loading earlier comments…</p>}
-      <ol className="comments__list" aria-labelledby="comments-heading">
+      <ol className="comments__list" aria-label="Comment thread">
         {items.map(({ comment, status }) => (
           <CommentItem
             key={comment.clientId}
