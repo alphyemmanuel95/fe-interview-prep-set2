@@ -1,8 +1,13 @@
 .active-users-widget__value {
   margin: 0;
-  font-size: 2rem;
+  font-size: var(--dashboard-font-size-metric);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.active-users-widget__caption {
+  margin: 0;
+  color: var(--color-text-muted);
 }
 
 .active-users-widget__chart {

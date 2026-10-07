@@ -32,6 +32,7 @@ export const ActiveUsersWidget = memo(function ActiveUsersWidget({
   return (
     <WidgetCard title={WIDGET_LABELS.activeUsers}>
       <p className="active-users-widget__value">{current ?? '—'}</p>
+      <p className="active-users-widget__caption">online now</p>
       <svg
         className="active-users-widget__chart"
         viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
