@@ -1,10 +1,11 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
-import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
+import { createMemoryRouter, Link, MemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Layout } from '../../../app/Layout';
 import { FeedPage } from '../FeedPage';
+import { initialFeedState } from '../model/feedReducer';
 import { createFeedStore } from '../model/feedStore';
 import { FeedList } from './FeedList';
 
@@ -159,6 +160,72 @@ describe('FeedList', () => {
     expect(await screen.findByRole('link', { name: 'Post 10' })).toBeInTheDocument();
     expect(router.state.historyAction).toBe('POP');
     expect(scrollTo).toHaveBeenCalledWith(0, SAVED_SCROLL_Y);
+    expect(screen.getByRole('link', { name: 'Post 3' })).toHaveFocus();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts a fresh feed when /feed is opened by a link (PUSH)', async () => {
+    const user = userEvent.setup();
+    const store = createFeedStore({
+      ...initialFeedState,
+      posts: [
+        {
+          id: 99,
+          title: 'Stale post',
+          body: 'Old',
+          tags: [],
+          likes: 0,
+          dislikes: 0,
+          views: 0,
+        },
+      ],
+      nextSkip: 10,
+    });
+    const router = createMemoryRouter(
+      [
+        { path: '/', element: <Link to="/feed">Open feed</Link> },
+        { path: '/feed/*', element: <FeedPage store={store} /> },
+      ],
+      { initialEntries: ['/'] },
+    );
+    render(<RouterProvider router={router} />);
+
+    await user.click(screen.getByRole('link', { name: 'Open feed' }));
+    expect(screen.queryByRole('link', { name: 'Stale post' })).not.toBeInTheDocument();
+
+    scrollSentinelIntoView(1);
+    expect(await screen.findByRole('link', { name: 'Post 1' })).toBeInTheDocument();
+    expect(requestedSkips()).toEqual(['0']);
+  });
+
+  it('aborts the pending request on unmount and leaves the store idle', async () => {
+    let requestSignal: AbortSignal | undefined;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            requestSignal = init.signal ?? undefined;
+            init.signal?.addEventListener('abort', () => {
+              reject(new DOMException('Aborted', 'AbortError'));
+            });
+          }),
+      ),
+    );
+    const store = createFeedStore();
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/feed']}>
+        <FeedList store={store} />
+      </MemoryRouter>,
+    );
+
+    scrollSentinelIntoView(1);
+    expect(store.getState().phase).toEqual({ status: 'loading' });
+
+    unmount();
+    expect(requestSignal?.aborted).toBe(true);
+    await waitFor(() => {
+      expect(store.getState().phase).toEqual({ status: 'idle' });
+    });
   });
 });

@@ -11,15 +11,23 @@ export type FeedState = Readonly<{
   posts: readonly Post[];
   nextSkip: number;
   phase: FeedPhase;
+  lastOpenedPostId: number | null;
 }>;
 
 export type FeedAction =
   | { readonly type: 'pageRequested' }
   | { readonly type: 'pageLoaded'; readonly page: PostsPage }
   | { readonly type: 'pageFailed' }
-  | { readonly type: 'pageCancelled' };
+  | { readonly type: 'pageCancelled' }
+  | { readonly type: 'postOpened'; readonly postId: number }
+  | { readonly type: 'feedReset' };
 
-export const initialFeedState: FeedState = { posts: [], nextSkip: 0, phase: { status: 'idle' } };
+export const initialFeedState: FeedState = {
+  posts: [],
+  nextSkip: 0,
+  phase: { status: 'idle' },
+  lastOpenedPostId: null,
+};
 
 // Belt and braces next to the in-flight guard: if the backing list shifts between pages
 // (a post inserted upstream), the same id can arrive twice and would break React keys.
@@ -47,6 +55,7 @@ export function feedReducer(state: FeedState, action: FeedAction): FeedState {
       const nextSkip = page.skip + page.itemCount;
       const isLastPage = page.itemCount === 0 || nextSkip >= page.total;
       return {
+        ...state,
         posts: appendUniquePosts(state.posts, page.posts),
         nextSkip,
         phase: isLastPage ? { status: 'done' } : { status: 'idle' },
@@ -56,6 +65,10 @@ export function feedReducer(state: FeedState, action: FeedAction): FeedState {
       return { ...state, phase: { status: 'error' } };
     case 'pageCancelled':
       return state.phase.status === 'loading' ? { ...state, phase: { status: 'idle' } } : state;
+    case 'postOpened':
+      return { ...state, lastOpenedPostId: action.postId };
+    case 'feedReset':
+      return initialFeedState;
     default:
       return assertNever(action);
   }
