@@ -30,6 +30,8 @@ const FIRST_ORDER_NUMBER = 1_001;
 const MAX_RECENT_ORDERS = 5;
 const MIN_ORDER_CENTS = 1_500;
 const MAX_ORDER_CENTS = 48_000;
+// Sales only grow when an order is created (a sale *is* an order), so the total and the orders
+// list change together. Active users move on every call, so every response still differs.
 // Orders arrive only on some calls, so the sales and orders widgets often keep identical data
 // between polls — that is what makes the "unchanged widgets don't re-render" rule observable.
 const NEW_ORDER_PROBABILITY = 0.5;
