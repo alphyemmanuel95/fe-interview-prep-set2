@@ -11,6 +11,13 @@ export type ProductListProps = Readonly<{
   onAdd: (product: Product) => void;
 }>;
 
+function addButtonText(stock: number, inCart: number): string {
+  if (stock === 0) {
+    return 'Out of stock';
+  }
+  return inCart >= stock ? 'Max in cart' : 'Add to cart';
+}
+
 export function ProductList({ products, quantityInCart, onAdd }: ProductListProps): JSX.Element {
   return (
     <ul className="product-list" aria-label="Products">
@@ -19,10 +26,11 @@ export function ProductList({ products, quantityInCart, onAdd }: ProductListProp
         const canAdd = inCart < product.stock;
         return (
           <li key={product.id} className="product-list__item">
+            {/* Decorative: the title right below already names the product. */}
             <img
               className="product-list__image"
               src={product.thumbnail}
-              alt={product.title}
+              alt=""
               width={THUMBNAIL_SIZE_PX}
               height={THUMBNAIL_SIZE_PX}
               loading="lazy"
@@ -32,16 +40,19 @@ export function ProductList({ products, quantityInCart, onAdd }: ProductListProp
             <p className="product-list__stock">
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </p>
+            {/* aria-disabled keeps focus on the button when the last unit is added. */}
             <button
               type="button"
               className="product-list__add"
               aria-label={`Add ${product.title} to cart`}
-              disabled={!canAdd}
+              aria-disabled={!canAdd}
               onClick={() => {
-                onAdd(product);
+                if (canAdd) {
+                  onAdd(product);
+                }
               }}
             >
-              {canAdd ? 'Add to cart' : 'Max in cart'}
+              {addButtonText(product.stock, inCart)}
             </button>
           </li>
         );
