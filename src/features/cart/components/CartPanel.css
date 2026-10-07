@@ -1,0 +1,127 @@
+.cart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.cart__heading {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.cart__empty {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.cart__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cart__item {
+  display: flex;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cart__thumbnail {
+  flex-shrink: 0;
+  border-radius: var(--radius);
+  background: var(--color-surface-alt);
+  object-fit: contain;
+}
+
+.cart__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.cart__name,
+.cart__line-price,
+.cart__hint {
+  margin: 0;
+}
+
+.cart__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cart__line-price,
+.cart__hint {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.cart__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cart__step {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.cart__step:disabled {
+  color: var(--color-text-muted);
+  background: var(--color-surface-alt);
+  cursor: not-allowed;
+}
+
+.cart__quantity {
+  min-width: 1.5rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cart__remove {
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-danger);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cart__totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.cart__total-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.cart__total-row dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.cart__total-row--grand {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  font-weight: 700;
+}
