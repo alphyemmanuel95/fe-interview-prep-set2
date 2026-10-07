@@ -2,13 +2,13 @@
 
 Five React + TypeScript features, each shipped as its own pull request. Every question lives on its own route, linked from the home page.
 
-| #   | Question                      | PR link                                                                |
-| --- | ----------------------------- | ---------------------------------------------------------------------- |
-| 1   | Shopping Cart                 | [#8](https://github.com/alphyemmanuel95/fe-interview-prep-set2/pull/8) |
-| 2   | Infinite Feed                 | [#9](https://github.com/alphyemmanuel95/fe-interview-prep-set2/pull/9) |
-| 3   | Kanban Board                  |                                                                        |
-| 4   | Live Dashboard                |                                                                        |
-| 5   | Comments with Offline Support |                                                                        |
+| #   | Question                      | PR link                                                                  |
+| --- | ----------------------------- | ------------------------------------------------------------------------ |
+| 1   | Shopping Cart                 | [#8](https://github.com/alphyemmanuel95/fe-interview-prep-set2/pull/8)   |
+| 2   | Infinite Feed                 | [#9](https://github.com/alphyemmanuel95/fe-interview-prep-set2/pull/9)   |
+| 3   | Kanban Board                  | [#10](https://github.com/alphyemmanuel95/fe-interview-prep-set2/pull/10) |
+| 4   | Live Dashboard                |                                                                          |
+| 5   | Comments with Offline Support |                                                                          |
 
 **Video:**
 
