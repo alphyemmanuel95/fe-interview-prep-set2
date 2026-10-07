@@ -8,6 +8,7 @@ import {
   editButtonId,
   moveButtonId,
 } from './components/elementIds';
+import { useAnnouncer } from './hooks/useAnnouncer';
 import { useBoard } from './hooks/useBoard';
 import { useCardDrag } from './hooks/useCardDrag';
 import { useFocusRequest } from './hooks/useFocusRequest';
@@ -19,7 +20,7 @@ import './KanbanPage.css';
 export function KanbanPage(): JSX.Element {
   const { board, dispatch } = useBoard();
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
-  const [announcement, setAnnouncement] = useState('');
+  const { announcement, announce } = useAnnouncer();
   const requestFocus = useFocusRequest();
 
   const moveCard = (cardId: string, target: MoveTarget): void => {
@@ -27,7 +28,7 @@ export function KanbanPage(): JSX.Element {
     if (isNoopMove(board, cardId, target.toColumn, target.toIndex)) {
       return;
     }
-    setAnnouncement(describeMove(board, cardId, target));
+    announce(describeMove(board, cardId, target));
     dispatch({ type: 'move', cardId, ...target });
   };
 
@@ -38,7 +39,7 @@ export function KanbanPage(): JSX.Element {
     onAdd: (columnId, draft) => {
       // The id is created here, not in the reducer, so the reducer stays pure.
       dispatch({ type: 'add', columnId, card: { id: crypto.randomUUID(), ...draft } });
-      setAnnouncement(`Added "${draft.title}".`);
+      announce(`Added "${draft.title}".`);
     },
     onMove: (cardId, direction) => {
       const target = getMoveTarget(board, cardId, direction);
@@ -55,7 +56,7 @@ export function KanbanPage(): JSX.Element {
     onEditSave: (cardId, draft) => {
       dispatch({ type: 'edit', cardId, changes: draft });
       setEditingCardId(null);
-      setAnnouncement(`Saved "${draft.title}".`);
+      announce(`Saved "${draft.title}".`);
       requestFocus(editButtonId(cardId));
     },
     onEditCancel: (cardId) => {
@@ -66,7 +67,7 @@ export function KanbanPage(): JSX.Element {
       const location = findCard(board, cardId);
       const title = board.cards[cardId]?.title ?? 'card';
       dispatch({ type: 'delete', cardId });
-      setAnnouncement(`Deleted "${title}".`);
+      announce(`Deleted "${title}".`);
       if (location !== undefined) {
         requestFocus(columnHeadingId(location.columnId));
       }
@@ -97,7 +98,7 @@ export function KanbanPage(): JSX.Element {
         ))}
       </div>
       <p className="visually-hidden" aria-live="polite">
-        {announcement}
+        <span key={announcement.id}>{announcement.message}</span>
       </p>
     </section>
   );
