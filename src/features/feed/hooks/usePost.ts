@@ -29,6 +29,9 @@ export function usePost(postId: number | null, store: FeedStore): PostQuery {
     const controller = new AbortController();
     fetchPost(postId, controller.signal).then(
       (post) => {
+        if (controller.signal.aborted) {
+          return;
+        }
         setFetched(post ? { status: 'success', post } : { status: 'notFound' });
       },
       () => {
