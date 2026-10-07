@@ -1,0 +1,84 @@
+.comments {
+  /* Feature-scoped tokens; the shared palette and spacing come from src/index.css. */
+  --comments-max-width: 44rem;
+  --comments-accent-width: 4px;
+  --comments-pill-radius: 999px;
+  --comments-disabled-opacity: 0.55;
+  --comments-skeleton-height: 5rem;
+
+  display: grid;
+  gap: var(--space-4);
+  max-width: var(--comments-max-width);
+}
+
+.comments__title {
+  margin: 0;
+}
+
+.comments__connection {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  font-weight: 600;
+}
+
+.comments__connection--offline {
+  color: var(--color-warning);
+}
+
+.comments__connection--online {
+  color: var(--color-success);
+}
+
+.comments__heading {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.comments__skeleton {
+  display: grid;
+  gap: var(--space-3);
+}
+
+/* Reserves roughly the space history will take, so restored outbox items don't jump. */
+.comments__skeleton-item {
+  height: var(--comments-skeleton-height);
+  border-radius: var(--radius);
+  background: var(--color-surface-alt);
+}
+
+.comments__history-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.comments__history-error-text {
+  margin: 0;
+  color: var(--color-danger);
+}
+
+.comments__history-retry {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.comments__list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

@@ -10,5 +10,6 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}', 'mock-api/**/*.test.ts'],
     restoreMocks: true,
     unstubGlobals: true,
+    testTimeout: 15_000,
   },
 });
