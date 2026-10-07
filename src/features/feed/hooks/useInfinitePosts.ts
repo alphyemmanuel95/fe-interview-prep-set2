@@ -13,9 +13,10 @@ export type InfinitePosts = Readonly<{
 
 export function useInfinitePosts(store: FeedStore): InfinitePosts {
   const { posts, phase } = useSyncExternalStore(store.subscribe, store.getState);
-  // The in-flight guard lives in a ref, not state: a ref updates synchronously, so a burst of
-  // intersection callbacks in the same tick sees the first request and bails out. A state flag
-  // is only visible after the next render, letting a second request for the same page slip through.
+  // Duplicate requests are stopped first by `loadNextPage`, which reads the phase synchronously
+  // from the external store: the first call flips it to 'loading' before the next call runs, which
+  // React state could not do until a re-render. This ref's main job is holding the AbortController
+  // so leaving mid-request can cancel it. It also acts as a second, independent in-flight guard.
   const inFlightRef = useRef<AbortController | null>(null);
 
   const fetchNextPage = useCallback(async (): Promise<void> => {
