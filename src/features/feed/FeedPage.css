@@ -1,0 +1,12 @@
+/* Feature-scoped sizing tokens. Kept here rather than in the shared src/index.css so the
+   question branches don't conflict; colours and spacing still come from the global tokens. */
+.feed-page {
+  --feed-content-width: 48rem;
+  --feed-title-size: 1.125rem;
+  --feed-body-size: 1.0625rem;
+  --feed-meta-size: 0.875rem;
+  --feed-excerpt-lines: 2;
+  --feed-status-min-height: 3rem;
+  --feed-spinner-size: 1rem;
+  --feed-spinner-duration: 0.8s;
+}

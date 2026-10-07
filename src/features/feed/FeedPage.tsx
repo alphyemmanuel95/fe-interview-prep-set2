@@ -5,6 +5,7 @@ import { PostDetail } from './components/PostDetail';
 import { feedStore } from './model/feedStore';
 import type { FeedStore } from './model/feedStore';
 import { parsePostId } from './model/post';
+import './FeedPage.css';
 
 type StoreProps = Readonly<{ store: FeedStore }>;
 
@@ -19,9 +20,11 @@ type FeedPageProps = Readonly<{ store?: FeedStore }>;
 
 export function FeedPage({ store = feedStore }: FeedPageProps): JSX.Element {
   return (
-    <Routes>
-      <Route index element={<FeedList store={store} />} />
-      <Route path=":postId" element={<PostDetailRoute store={store} />} />
-    </Routes>
+    <div className="feed-page">
+      <Routes>
+        <Route index element={<FeedList store={store} />} />
+        <Route path=":postId" element={<PostDetailRoute store={store} />} />
+      </Routes>
+    </div>
   );
 }
