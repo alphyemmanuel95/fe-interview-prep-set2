@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { loadFromStorage, saveToStorage } from '../../../shared/storage';
 import { isWidgetIdList, type WidgetId } from '../model/widgets';
 
@@ -17,13 +17,18 @@ export function useWidgetVisibility(): UseWidgetVisibilityResult {
     loadFromStorage(STORAGE_KEY, STORAGE_VERSION, isWidgetIdList, []),
   );
 
-  const toggleWidget = (id: WidgetId): void => {
-    const next = hiddenWidgetIds.includes(id)
-      ? hiddenWidgetIds.filter((hiddenId) => hiddenId !== id)
-      : [...hiddenWidgetIds, id];
-    setHiddenWidgetIds(next);
-    saveToStorage(STORAGE_KEY, STORAGE_VERSION, next);
-  };
+  // Persisting is a side effect, so it lives here rather than inside the (pure) state updater.
+  useEffect(() => {
+    saveToStorage(STORAGE_KEY, STORAGE_VERSION, hiddenWidgetIds);
+  }, [hiddenWidgetIds]);
+
+  // Stable identity (functional update, no dependencies) so the memoized toggles don't
+  // re-render on every poll.
+  const toggleWidget = useCallback((id: WidgetId): void => {
+    setHiddenWidgetIds((current) =>
+      current.includes(id) ? current.filter((hiddenId) => hiddenId !== id) : [...current, id],
+    );
+  }, []);
 
   return { hiddenWidgetIds, toggleWidget };
 }
