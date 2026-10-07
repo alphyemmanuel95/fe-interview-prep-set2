@@ -3,11 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { StrictMode } from 'react';
 import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Layout } from '../../../app/Layout';
 import { FeedPage } from '../FeedPage';
 import { createFeedStore } from '../model/feedStore';
 import { FeedList } from './FeedList';
 
 const TOTAL_POSTS = 25;
+const SAVED_SCROLL_Y = 1234;
 
 type ObserverCallback = (entries: readonly { isIntersecting: boolean }[]) => void;
 
@@ -127,23 +129,36 @@ describe('FeedList', () => {
     expect(requestedSkips()).toEqual(['0', '0']);
   });
 
-  it('keeps loaded posts when returning from a post without refetching', async () => {
+  it('restores the scroll position and keeps loaded posts when going back', async () => {
     const user = userEvent.setup();
+    // jsdom does not lay out or scroll, so the test stands in for the browser's scroll APIs.
+    const scrollTo = vi.fn();
+    vi.stubGlobal('scrollTo', scrollTo);
+    const scrollY = vi.spyOn(window, 'scrollY', 'get');
     const router = createMemoryRouter(
-      [{ path: '/feed/*', element: <FeedPage store={createFeedStore()} /> }],
-      {
-        initialEntries: ['/feed'],
-      },
+      [
+        {
+          path: '/',
+          element: <Layout />,
+          children: [{ path: 'feed/*', element: <FeedPage store={createFeedStore()} /> }],
+        },
+      ],
+      { initialEntries: ['/feed'] },
     );
     render(<RouterProvider router={router} />);
 
     scrollSentinelIntoView(1);
-    await user.click(await screen.findByRole('link', { name: 'Post 3' }));
+    const postLink = await screen.findByRole('link', { name: 'Post 3' });
+    scrollY.mockReturnValue(SAVED_SCROLL_Y);
+    await user.click(postLink);
     expect(screen.getByRole('heading', { level: 1, name: 'Post 3' })).toBeInTheDocument();
 
+    scrollY.mockReturnValue(0);
+    scrollTo.mockClear();
     await user.click(screen.getByRole('link', { name: /Back to feed/ }));
     expect(await screen.findByRole('link', { name: 'Post 10' })).toBeInTheDocument();
     expect(router.state.historyAction).toBe('POP');
+    expect(scrollTo).toHaveBeenCalledWith(0, SAVED_SCROLL_Y);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
