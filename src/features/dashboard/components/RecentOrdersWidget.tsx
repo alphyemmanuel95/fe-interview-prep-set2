@@ -1,5 +1,6 @@
 import { memo, type JSX } from 'react';
 import { formatCents } from '../model/money';
+import { formatTime } from '../model/time';
 import type { Order } from '../model/types';
 import { WIDGET_LABELS } from '../model/widgets';
 import { WidgetCard } from './WidgetCard';
@@ -9,8 +10,6 @@ type RecentOrdersWidgetProps = Readonly<{
   orders: readonly Order[];
   currency: string;
 }>;
-
-const timeFormatter = new Intl.DateTimeFormat(undefined, { timeStyle: 'medium' });
 
 // Memoized: the reducer reuses the same `orders` array when no new order arrived, and
 // `currency` is a primitive, so polls that only change other widgets skip this one.
@@ -32,9 +31,7 @@ export const RecentOrdersWidget = memo(function RecentOrdersWidget({
               </span>
               <span className="recent-orders-widget__meta">
                 {order.id} ·{' '}
-                <time dateTime={order.createdAt}>
-                  {timeFormatter.format(new Date(order.createdAt))}
-                </time>
+                <time dateTime={order.createdAt}>{formatTime(new Date(order.createdAt))}</time>
               </span>
             </li>
           ))}
