@@ -1,6 +1,10 @@
 import { isProductsResponse, toProduct, type Product } from '../model/product';
 
-const PRODUCTS_URL = 'https://dummyjson.com/products?limit=30&select=title,price,thumbnail,stock';
+const PRODUCTS_LIMIT = 30;
+const PRODUCTS_URL = `https://dummyjson.com/products?${new URLSearchParams({
+  limit: String(PRODUCTS_LIMIT),
+  select: 'title,price,thumbnail,stock',
+}).toString()}`;
 
 export async function fetchProducts(signal: AbortSignal): Promise<readonly Product[]> {
   const response = await fetch(PRODUCTS_URL, { signal });

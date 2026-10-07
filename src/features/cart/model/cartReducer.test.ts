@@ -47,5 +47,11 @@ describe('isCartState', () => {
     expect(isCartState([{ productId: 1, quantity: 0 }])).toBe(false);
     expect(isCartState([{ productId: '1', quantity: 2 }])).toBe(false);
     expect(isCartState({})).toBe(false);
+    expect(
+      isCartState([
+        { productId: 1, quantity: 1 },
+        { productId: 1, quantity: 2 },
+      ]),
+    ).toBe(false);
   });
 });

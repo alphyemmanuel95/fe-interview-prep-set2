@@ -16,12 +16,16 @@ export function useProducts(): UseProductsResult {
 
   useEffect(() => {
     const controller = new AbortController();
+    // A response that lands after abort belongs to an unmounted or superseded effect,
+    // so both branches check the signal before setting state.
     fetchProducts(controller.signal).then(
       (products) => {
+        if (controller.signal.aborted) {
+          return;
+        }
         setState({ status: 'success', products });
       },
       (error: unknown) => {
-        // An aborted request belongs to an unmounted or superseded effect, so it must not set state.
         if (controller.signal.aborted) {
           return;
         }

@@ -63,5 +63,13 @@ const isCartLine = (value: unknown): value is CartLine =>
   Number.isInteger(value.quantity) &&
   value.quantity >= MIN_QUANTITY;
 
-export const isCartState = (value: unknown): value is CartState =>
-  Array.isArray(value) && value.every(isCartLine);
+// Duplicate ids are rejected because the reducer assumes one line per product.
+export function isCartState(value: unknown): value is CartState {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  const items: readonly unknown[] = value;
+  return (
+    items.every(isCartLine) && new Set(items.map((line) => line.productId)).size === items.length
+  );
+}
