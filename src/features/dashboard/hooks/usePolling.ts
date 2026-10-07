@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent } from 'react';
+import { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { useDocumentVisibility } from './useDocumentVisibility';
 
 type UsePollingOptions<T> = Readonly<{
@@ -8,12 +8,12 @@ type UsePollingOptions<T> = Readonly<{
   onError: (error: unknown) => void;
 }>;
 
-type UsePollingResult = Readonly<{ isPaused: boolean }>;
+type UsePollingResult = Readonly<{ isPaused: boolean; refresh: () => void }>;
 
 /**
  * Polls `fetcher` while the page is visible. Each visible period is one effect run:
  * hiding the tab runs the cleanup (abort + clear timer), showing it starts a fresh run
- * that fetches immediately.
+ * that fetches immediately. `refresh` restarts the run the same way (used by "Retry now").
  */
 export function usePolling<T>({
   fetcher,
@@ -22,6 +22,12 @@ export function usePolling<T>({
   onError,
 }: UsePollingOptions<T>): UsePollingResult {
   const isVisible = useDocumentVisibility();
+  // Bumping this restarts the effect: the old run is aborted and a new one fetches at once,
+  // reusing the same cancellation and stale-response guards instead of a second code path.
+  const [runKey, setRunKey] = useState(0);
+  const refresh = useCallback(() => {
+    setRunKey((key) => key + 1);
+  }, []);
   // Effect events read the latest callbacks without making them dependencies, so a parent
   // passing new inline functions each render doesn't restart the polling loop.
   const runFetcher = useEffectEvent(fetcher);
@@ -64,7 +70,7 @@ export function usePolling<T>({
       clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [isVisible, intervalMs]);
+  }, [isVisible, intervalMs, runKey]);
 
-  return { isPaused: !isVisible };
+  return { isPaused: !isVisible, refresh };
 }

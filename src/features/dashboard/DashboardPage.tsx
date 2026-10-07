@@ -6,8 +6,9 @@ import { DashboardStatus } from './components/DashboardStatus';
 import { RecentOrdersWidget } from './components/RecentOrdersWidget';
 import { SalesWidget } from './components/SalesWidget';
 import { WidgetToggles } from './components/WidgetToggles';
-import { useDashboard } from './hooks/useDashboard';
+import { POLL_INTERVAL_MS, useDashboard } from './hooks/useDashboard';
 import { useWidgetVisibility } from './hooks/useWidgetVisibility';
+import { getConnectionState } from './model/connection';
 import type { DashboardData, DashboardState } from './model/dashboardReducer';
 import type { DashboardFetcher } from './model/types';
 import { WIDGET_IDS, type WidgetId } from './model/widgets';
@@ -17,6 +18,8 @@ type DashboardPageProps = Readonly<{
   /** Injected in tests; the route renders the real HTTP client. */
   fetcher?: DashboardFetcher;
 }>;
+
+const MS_PER_SECOND = 1_000;
 
 type WidgetGridProps = Readonly<{
   data: DashboardData;
@@ -44,17 +47,27 @@ function WidgetGrid({ data, hiddenWidgetIds }: WidgetGridProps): JSX.Element {
 type DashboardContentProps = Readonly<{
   state: DashboardState;
   hiddenWidgetIds: readonly WidgetId[];
+  onRetry: () => void;
 }>;
 
-function DashboardContent({ state, hiddenWidgetIds }: DashboardContentProps): JSX.Element {
+function DashboardContent({ state, hiddenWidgetIds, onRetry }: DashboardContentProps): JSX.Element {
   switch (state.status) {
     case 'loading':
-      return <p className="dashboard__message">Loading dashboard…</p>;
+      return (
+        <p className="dashboard__message" role="status">
+          Loading dashboard…
+        </p>
+      );
     case 'error':
       return (
-        <p className="dashboard__message dashboard__message--error" role="alert">
-          Could not load the dashboard: {state.error}. Retrying automatically.
-        </p>
+        <div className="dashboard__error" role="alert">
+          <p className="dashboard__message dashboard__message--error">
+            Could not load the dashboard: {state.error}.
+          </p>
+          <button className="dashboard__retry" type="button" onClick={onRetry}>
+            Retry now
+          </button>
+        </div>
       );
     case 'ready':
       return <WidgetGrid data={state.data} hiddenWidgetIds={hiddenWidgetIds} />;
@@ -64,7 +77,7 @@ function DashboardContent({ state, hiddenWidgetIds }: DashboardContentProps): JS
 }
 
 export function DashboardPage({ fetcher = fetchDashboard }: DashboardPageProps): JSX.Element {
-  const { state, isPaused } = useDashboard(fetcher);
+  const { state, isPaused, refresh } = useDashboard(fetcher);
   const { hiddenWidgetIds, toggleWidget } = useWidgetVisibility();
   return (
     <section className="dashboard" aria-labelledby="page-title">
@@ -72,12 +85,13 @@ export function DashboardPage({ fetcher = fetchDashboard }: DashboardPageProps):
         Live Dashboard
       </h1>
       <DashboardStatus
-        isPaused={isPaused}
+        connection={getConnectionState(isPaused, state)}
+        intervalSeconds={POLL_INTERVAL_MS / MS_PER_SECOND}
         updatedAt={state.status === 'ready' ? state.data.updatedAt : null}
         refreshError={state.status === 'ready' ? state.refreshError : null}
       />
       <WidgetToggles hiddenWidgetIds={hiddenWidgetIds} onToggle={toggleWidget} />
-      <DashboardContent state={state} hiddenWidgetIds={hiddenWidgetIds} />
+      <DashboardContent state={state} hiddenWidgetIds={hiddenWidgetIds} onRetry={refresh} />
     </section>
   );
 }

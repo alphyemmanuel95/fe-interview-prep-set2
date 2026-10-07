@@ -153,6 +153,20 @@ describe('usePolling', () => {
     expect(onSuccess).toHaveBeenCalledWith(2);
   });
 
+  it('refresh aborts the pending request and fetches immediately', async () => {
+    const { fetcher, calls } = createControlledFetcher<number>();
+    const { result } = renderPolling(fetcher);
+    await advance(0);
+
+    act(() => {
+      result.current.refresh();
+    });
+    await advance(0);
+
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.signal.aborted).toBe(true);
+  });
+
   it('aborts the in-flight request on unmount', async () => {
     const { fetcher, calls } = createControlledFetcher<number>();
     const { unmount } = renderPolling(fetcher);

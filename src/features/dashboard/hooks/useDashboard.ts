@@ -9,14 +9,18 @@ import { usePolling } from './usePolling';
 
 export const POLL_INTERVAL_MS = 5_000;
 
-type UseDashboardResult = Readonly<{ state: DashboardState; isPaused: boolean }>;
+type UseDashboardResult = Readonly<{
+  state: DashboardState;
+  isPaused: boolean;
+  refresh: () => void;
+}>;
 
 const toMessage = (error: unknown): string =>
   error instanceof Error ? error.message : 'Unknown error';
 
 export function useDashboard(fetcher: DashboardFetcher): UseDashboardResult {
   const [state, dispatch] = useReducer(dashboardReducer, initialDashboardState);
-  const { isPaused } = usePolling({
+  const { isPaused, refresh } = usePolling({
     fetcher,
     intervalMs: POLL_INTERVAL_MS,
     onSuccess: (snapshot) => {
@@ -26,5 +30,5 @@ export function useDashboard(fetcher: DashboardFetcher): UseDashboardResult {
       dispatch({ type: 'failed', error: toMessage(error) });
     },
   });
-  return { state, isPaused };
+  return { state, isPaused, refresh };
 }

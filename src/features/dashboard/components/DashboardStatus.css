@@ -10,8 +10,7 @@
   margin: 0;
 }
 
-.dashboard-status__dot--live,
-.dashboard-status__dot--paused {
+.dashboard-status__dot {
   display: inline-block;
   width: 0.625rem;
   height: 0.625rem;
@@ -25,6 +24,10 @@
 
 .dashboard-status__dot--paused {
   background: var(--color-warning);
+}
+
+.dashboard-status__dot--unavailable {
+  background: var(--color-danger);
 }
 
 .dashboard-status__error {
