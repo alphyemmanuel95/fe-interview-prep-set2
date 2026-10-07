@@ -81,7 +81,7 @@ export function CardForm({
         }}
       />
       {hasTitleError && (
-        <p id={errorId} className="card-form__error">
+        <p id={errorId} className="card-form__error" role="alert">
           Title is required.
         </p>
       )}

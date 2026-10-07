@@ -84,13 +84,17 @@ describe('KanbanPage', () => {
 
     await user.click(screen.getByRole('button', { name: 'Delete "Write spec"' }));
     expect(screen.getByRole('heading', { name: 'To do (1)' })).toBeInTheDocument();
+    // Focus moves to the next card in the column.
+    expect(screen.getByRole('heading', { name: 'Review PR' }).closest('article')).toHaveFocus();
 
-    await user.click(screen.getByRole('button', { name: 'Undo delete' }));
+    await user.click(screen.getByRole('button', { name: 'Undo delete of "Write spec"' }));
     const titles = within(column(/^To do/))
       .getAllByRole('heading', { level: 3 })
       .map((heading) => heading.textContent);
     expect(titles).toEqual(['Write spec', 'Review PR']);
-    expect(screen.queryByRole('button', { name: 'Undo delete' })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Undo delete of "Write spec"' }),
+    ).not.toBeInTheDocument();
   });
 
   it('restores the board from localStorage after a remount', async () => {

@@ -12,7 +12,7 @@ import { useAnnouncer } from './hooks/useAnnouncer';
 import { useBoard } from './hooks/useBoard';
 import { useCardDrag } from './hooks/useCardDrag';
 import { useFocusRequest } from './hooks/useFocusRequest';
-import type { Card, ColumnId } from './model/board';
+import type { BoardAction, Card, ColumnId } from './model/board';
 import { COLUMN_IDS, findCard, isNoopMove } from './model/board';
 import type { MoveTarget } from './model/moves';
 import { describeMove, getMoveTarget } from './model/moves';
@@ -26,6 +26,12 @@ export function KanbanPage(): JSX.Element {
   const { announcement, announce } = useAnnouncer();
   const [lastDeleted, setLastDeleted] = useState<DeletedCard | null>(null);
   const requestFocus = useFocusRequest();
+
+  // Any other board change makes the undo stale (positions may have shifted), so it expires.
+  const applyAction = (action: BoardAction): void => {
+    dispatch(action);
+    setLastDeleted(null);
+  };
 
   const handleUndoDelete = (): void => {
     if (lastDeleted === null) {
@@ -43,7 +49,7 @@ export function KanbanPage(): JSX.Element {
       return;
     }
     announce(describeMove(board, cardId, target));
-    dispatch({ type: 'move', cardId, ...target });
+    applyAction({ type: 'move', cardId, ...target });
   };
 
   const { draggingCardId, dropTarget, getCardDragProps, getColumnDropProps } =
@@ -52,7 +58,7 @@ export function KanbanPage(): JSX.Element {
   const handlers: CardHandlers = {
     onAdd: (columnId, draft) => {
       // The id is created here, not in the reducer, so the reducer stays pure.
-      dispatch({ type: 'add', columnId, card: { id: crypto.randomUUID(), ...draft } });
+      applyAction({ type: 'add', columnId, card: { id: crypto.randomUUID(), ...draft } });
       announce(`Added "${draft.title}".`);
     },
     onMove: (cardId, direction) => {
@@ -68,7 +74,7 @@ export function KanbanPage(): JSX.Element {
       setEditingCardId(cardId);
     },
     onEditSave: (cardId, draft) => {
-      dispatch({ type: 'edit', cardId, changes: draft });
+      applyAction({ type: 'edit', cardId, changes: draft });
       setEditingCardId(null);
       announce(`Saved "${draft.title}".`);
       requestFocus(editButtonId(cardId));
@@ -87,7 +93,12 @@ export function KanbanPage(): JSX.Element {
       // Undo instead of a confirm dialog: deleting stays one click and mistakes are recoverable.
       setLastDeleted({ card, columnId: location.columnId, index: location.index });
       announce(`Deleted "${card.title}".`);
-      requestFocus(columnHeadingId(location.columnId));
+      // Focus the next card, else the previous one, else the column heading.
+      const siblings = board.columns[location.columnId];
+      const neighbourIds = [siblings[location.index + 1], siblings[location.index - 1]].filter(
+        (id): id is string => id !== undefined,
+      );
+      requestFocus(...neighbourIds.map(cardElementId), columnHeadingId(location.columnId));
     },
   };
 
@@ -96,9 +107,7 @@ export function KanbanPage(): JSX.Element {
       <h1 id="page-title" className="kanban__title">
         Kanban Board
       </h1>
-      <p className="kanban__hint">
-        Drag cards to move them, or use the arrow buttons on each card.
-      </p>
+      <p className="kanban__hint">Drag cards, or use the arrow buttons to move them.</p>
       <div className="kanban__columns">
         {COLUMN_IDS.map((columnId) => (
           <Column
@@ -122,7 +131,7 @@ export function KanbanPage(): JSX.Element {
         </p>
         {lastDeleted !== null && (
           <button type="button" className="kanban__undo" onClick={handleUndoDelete}>
-            Undo delete
+            Undo delete of "{lastDeleted.card.title}"
           </button>
         )}
       </div>
