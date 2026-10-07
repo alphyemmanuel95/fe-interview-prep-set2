@@ -1,10 +1,12 @@
 import type { JSX } from 'react';
+import { Route, Routes } from 'react-router';
+import { FeedList } from './components/FeedList';
+import { feedStore } from './model/feedStore';
 
 export function FeedPage(): JSX.Element {
   return (
-    <section aria-labelledby="page-title">
-      <h1 id="page-title">Infinite Feed</h1>
-      <p>Implemented in Q2.</p>
-    </section>
+    <Routes>
+      <Route index element={<FeedList store={feedStore} />} />
+    </Routes>
   );
 }
