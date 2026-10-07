@@ -12,6 +12,13 @@
   list-style: none;
 }
 
+.feed__skeleton {
+  height: var(--feed-skeleton-height);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface-alt);
+}
+
 .feed__sentinel {
   height: 1px;
 }

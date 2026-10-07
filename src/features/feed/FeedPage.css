@@ -9,4 +9,5 @@
   --feed-status-min-height: 3rem;
   --feed-spinner-size: 1rem;
   --feed-spinner-duration: 0.8s;
+  --feed-skeleton-height: 9rem;
 }

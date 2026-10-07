@@ -125,7 +125,7 @@ describe('FeedList', () => {
     await user.click(retryButton);
     expect(await screen.findByRole('link', { name: 'Post 1' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument();
-    expect(status).toHaveFocus();
+    expect(status.parentElement).toHaveFocus();
     expect(requestedSkips()).toEqual(['0', '0']);
   });
 

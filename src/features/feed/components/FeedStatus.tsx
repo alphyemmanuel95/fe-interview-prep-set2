@@ -26,26 +26,24 @@ function describePhase(phase: FeedPhase, postCount: number): string {
 }
 
 export function FeedStatus({ phase, postCount, onRetry }: FeedStatusProps): JSX.Element {
-  const messageRef = useRef<HTMLParagraphElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const isError = phase.status === 'error';
 
-  // The Retry button unmounts as soon as it is pressed; moving focus to the status message
-  // keeps keyboard and screen reader users in place instead of dropping focus to <body>.
+  // The Retry button unmounts as soon as it is pressed; moving focus to the non-live wrapper keeps
+  // keyboard users in place without making screen readers announce the live message twice.
   const handleRetryClick = (): void => {
-    messageRef.current?.focus();
+    wrapperRef.current?.focus();
     onRetry();
   };
 
   return (
-    <div className="feed-status">
+    <div ref={wrapperRef} className="feed-status" tabIndex={-1}>
       {/* Always mounted so every change is announced; only the message is live, not the button. */}
       <p
-        ref={messageRef}
         className={
           isError ? 'feed-status__message feed-status__message--error' : 'feed-status__message'
         }
         role="status"
-        tabIndex={-1}
       >
         {phase.status === 'loading' && <span className="feed-status__spinner" aria-hidden="true" />}
         {describePhase(phase, postCount)}

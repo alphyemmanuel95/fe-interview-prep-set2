@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import type { JSX, MouseEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { assertNever } from '../../../shared/assertNever';
+import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { usePost } from '../hooks/usePost';
 import type { PostResult } from '../hooks/usePost';
 import type { FeedStore } from '../model/feedStore';
@@ -56,13 +57,7 @@ export function PostDetail({ postId, store }: PostDetailProps): JSX.Element {
     headingRef.current?.focus();
   }, []);
 
-  useEffect(() => {
-    const previousTitle = document.title;
-    document.title = `${heading} · Infinite Feed`;
-    return () => {
-      document.title = previousTitle;
-    };
-  }, [heading]);
+  useDocumentTitle(`${heading} · Infinite Feed`);
 
   // Popping history (rather than pushing /feed) lets ScrollRestoration put the user back exactly
   // where they were. That only works if the feed is still in memory: after a refresh on this page
